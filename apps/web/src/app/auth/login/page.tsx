@@ -2,26 +2,24 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { login } from '@/lib/auth'
 import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
+import { login } from '@/lib/auth'
+import { MacWindow } from '@/components/mac-window'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export default function LoginPage() {
   const router = useRouter()
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  })
-
+  const [formData, setFormData] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,88 +27,88 @@ export default function LoginPage() {
     setError('')
 
     if (!formData.email || !formData.password) {
-      setError('Email and password are required')
+      setError('Email y contraseña son requeridos')
       return
     }
 
     setLoading(true)
-
     try {
       const user = await login(formData.email, formData.password)
-
       if (user.user_type === 'talent') {
         router.push('/dashboard/talent')
       } else {
         router.push('/dashboard/founder')
       }
     } catch (err: any) {
-      setError(err.message || 'Login failed')
+      setError(err.message || 'No se pudo iniciar sesión')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="bg-slate-800/50 border border-purple-500/30 rounded-2xl p-8 backdrop-blur">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
-            Welcome Back
-          </h1>
-          <p className="text-slate-400 mb-8">Log in to your account</p>
+    <div className="w-full max-w-md animate-fade-in">
+      <MacWindow title="login.agentlink" subtitle="autenticación">
+        <div className="p-8 sm:p-10">
+          <div className="mb-7">
+            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              / log in
+            </div>
+            <h1 className="mt-3 font-serif text-4xl leading-[1] tracking-tight">
+              Hola <em className="italic text-muted-foreground">otra vez</em>.
+            </h1>
+          </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+            <div className="mb-5 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
-              <input
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="you@example.com"
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                placeholder="vos@startup.com"
+                autoComplete="email"
               />
             </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
-              <input
+            <div className="space-y-1.5">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input
+                id="password"
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                autoComplete="current-password"
               />
             </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg font-semibold transition-all mt-6"
-            >
-              {loading ? 'Logging in...' : 'Log In'}
-            </button>
+            <Button type="submit" disabled={loading} size="lg" variant="default" className="w-full">
+              {loading ? 'Ingresando…' : 'Ingresar'}
+              {!loading && <ArrowUpRight className="size-4" />}
+            </Button>
           </form>
 
-          {/* Register Link */}
-          <p className="text-center text-slate-400 mt-6">
-            Don't have an account?{' '}
-            <Link href="/auth/register" className="text-purple-400 hover:text-purple-300">
-              Sign up
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            ¿No tenés cuenta?{' '}
+            <Link
+              href="/auth/register"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              Registrate
             </Link>
           </p>
         </div>
-      </div>
+      </MacWindow>
     </div>
   )
 }

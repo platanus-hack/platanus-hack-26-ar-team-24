@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { api } from '@/lib/api'
+import { AmbientBg } from '@/components/ambient-bg'
 
 export default function CallbackPage() {
   const router = useRouter()
@@ -15,8 +16,7 @@ export default function CallbackPage() {
 
     const handleCallback = async () => {
       try {
-        // Small delay to ensure URL params are processed
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise((resolve) => setTimeout(resolve, 500))
 
         const { data, error } = await supabase.auth.getSession()
 
@@ -26,22 +26,15 @@ export default function CallbackPage() {
           return
         }
 
-        // Store the token for API calls
         const token = data.session.access_token
-        console.log('✅ Got token from Supabase')
         api.setToken(token)
 
-        // Store in localStorage
         if (typeof window !== 'undefined') {
           localStorage.setItem('auth_token', token)
           localStorage.setItem('user_id', data.session.user.id)
-          console.log('✅ Token stored in localStorage')
         }
 
-        // Wait a moment for storage to complete
-        await new Promise(resolve => setTimeout(resolve, 200))
-
-        console.log('✅ Redirecting to select-type...')
+        await new Promise((resolve) => setTimeout(resolve, 200))
         window.location.href = '/onboarding/select-type'
       } catch (err) {
         console.error('Callback error:', err)
@@ -53,10 +46,13 @@ export default function CallbackPage() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+    <div className="relative flex min-h-screen items-center justify-center px-4">
+      <AmbientBg />
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
-        <p className="mt-4 text-slate-300">Signing you in...</p>
+        <div className="mx-auto size-12 rounded-full bg-foreground animate-pulse-ring" />
+        <p className="mt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+          conectando agente…
+        </p>
       </div>
     </div>
   )

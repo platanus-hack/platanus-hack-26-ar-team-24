@@ -2,7 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ArrowUpRight, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { AmbientBg } from '@/components/ambient-bg'
+import { Wordmark } from '@/components/wordmark'
+import { MacWindow } from '@/components/mac-window'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 
 export default function StartupOnboarding() {
   const router = useRouter()
@@ -21,37 +30,28 @@ export default function StartupOnboarding() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value,
-    }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const addStack = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
       if (stackInput.trim()) {
-        setFormData(prev => ({
-          ...prev,
-          stack: [...prev.stack, stackInput.trim()],
-        }))
+        setFormData((prev) => ({ ...prev, stack: [...prev.stack, stackInput.trim()] }))
         setStackInput('')
       }
     }
   }
 
   const removeStack = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      stack: prev.stack.filter((_, i) => i !== index),
-    }))
+    setFormData((prev) => ({ ...prev, stack: prev.stack.filter((_, i) => i !== index) }))
   }
 
   const addCulture = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault()
       if (cultureInput.trim()) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           culture_values: [...prev.culture_values, cultureInput.trim()],
         }))
@@ -61,7 +61,7 @@ export default function StartupOnboarding() {
   }
 
   const removeCulture = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       culture_values: prev.culture_values.filter((_, i) => i !== index),
     }))
@@ -71,36 +71,25 @@ export default function StartupOnboarding() {
     e.preventDefault()
     setError('')
 
-    if (!formData.name.trim()) {
-      setError('Startup name is required')
-      return
-    }
-
-    if (!formData.description.trim()) {
-      setError('Description is required')
-      return
-    }
-
-    if (formData.description.length < 20) {
-      setError('Description must be at least 20 characters')
-      return
-    }
-
-    if (formData.stack.length === 0) {
-      setError('Add at least one technology to your stack')
-      return
-    }
+    if (!formData.name.trim()) return setError('El nombre de la startup es requerido')
+    if (!formData.description.trim()) return setError('La descripción es requerida')
+    if (formData.description.length < 20)
+      return setError('La descripción debe tener al menos 20 caracteres')
+    if (formData.stack.length === 0) return setError('Agregá al menos una tecnología')
 
     setLoading(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) throw new Error('No autenticado')
 
-      console.log('Creating startup profile for user:', user.id)
-
-      // First, ensure the user exists in public.users
-      const username = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'user'
+      const username =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split('@')[0] ||
+        'user'
 
       const { data: existingUser } = await supabase
         .from('users')
@@ -109,21 +98,16 @@ export default function StartupOnboarding() {
         .maybeSingle()
 
       if (!existingUser) {
-        console.log('Creating user record in public.users')
-        const { error: userError } = await supabase
-          .from('users')
-          .insert([{
+        const { error: userError } = await supabase.from('users').insert([
+          {
             id: user.id,
             email: user.email,
-            username: username,
+            username,
             user_type: 'founder',
             password_hash: 'oauth_user',
-          }])
-
-        if (userError) {
-          console.error('User insert error:', userError)
-          throw userError
-        }
+          },
+        ])
+        if (userError) throw userError
       }
 
       const profileData = {
@@ -134,157 +118,162 @@ export default function StartupOnboarding() {
         culture_values: formData.culture_values,
       }
 
-      console.log('Profile data:', profileData)
-
-      // Check if profile already exists
       const { data: existing } = await supabase
         .from('startup_profiles')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle()
 
-      console.log('Existing profile:', existing)
-
       let result
       if (existing) {
-        console.log('Updating existing profile')
         result = await supabase
           .from('startup_profiles')
           .update(profileData)
           .eq('user_id', user.id)
           .select()
       } else {
-        console.log('Inserting new profile')
-        result = await supabase
-          .from('startup_profiles')
-          .insert([profileData])
-          .select()
+        result = await supabase.from('startup_profiles').insert([profileData]).select()
       }
 
-      console.log('Save result:', result)
+      if (result.error) throw result.error
 
-      if (result.error) {
-        console.error('Save error details:', result.error)
-        throw result.error
-      }
-
-      console.log('✅ Startup profile saved! Redirecting...')
       router.push('/dashboard/founder')
     } catch (err: any) {
-      console.error('Full error:', err)
-      setError(err.message || 'Failed to create startup profile')
+      setError(err.message || 'No se pudo crear el perfil de la startup')
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <div className="bg-slate-800/50 border border-pink-500/30 rounded-2xl p-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
-            Create Your Startup Profile
-          </h1>
-          <p className="text-slate-400 mb-8">Tell us about your vision and what you're looking for in team members</p>
+    <div className="relative min-h-screen">
+      <AmbientBg />
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Startup Name */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Startup Name</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="e.g., TechAI Inc"
-                className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
-              />
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium mb-2">What does your startup do?</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe your startup's mission, what problems you solve, and your vision for the future..."
-                rows={5}
-                className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 resize-none"
-              />
-              <p className="text-xs text-slate-500 mt-1">{formData.description.length} characters (min 20)</p>
-            </div>
-
-            {/* Tech Stack */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Technology Stack (Press Enter to add)</label>
-              <input
-                type="text"
-                value={stackInput}
-                onChange={(e) => setStackInput(e.target.value)}
-                onKeyDown={addStack}
-                placeholder="e.g., React, Node.js, PostgreSQL..."
-                className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
-              />
-              <div className="flex flex-wrap gap-2 mt-3">
-                {formData.stack.map((tech, i) => (
-                  <span key={i} className="px-3 py-1 bg-pink-600 rounded-full text-sm flex items-center gap-2">
-                    {tech}
-                    <button
-                      type="button"
-                      onClick={() => removeStack(i)}
-                      className="hover:text-red-300"
-                    >
-                      ✕
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Culture Values */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Culture Values (Press Enter to add)</label>
-              <input
-                type="text"
-                value={cultureInput}
-                onChange={(e) => setCultureInput(e.target.value)}
-                onKeyDown={addCulture}
-                placeholder="e.g., Innovation, Collaboration, Transparency..."
-                className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
-              />
-              <div className="flex flex-wrap gap-2 mt-3">
-                {formData.culture_values.map((value, i) => (
-                  <span key={i} className="px-3 py-1 bg-purple-600 rounded-full text-sm flex items-center gap-2">
-                    {value}
-                    <button
-                      type="button"
-                      onClick={() => removeCulture(i)}
-                      className="hover:text-red-300"
-                    >
-                      ✕
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 disabled:opacity-50 rounded-lg font-semibold transition-all mt-8"
-            >
-              {loading ? 'Creating Startup Profile...' : 'Create Startup Profile'}
-            </button>
-          </form>
+      <header className="px-6 py-5">
+        <div className="mx-auto flex max-w-3xl items-center justify-between">
+          <Wordmark />
+          <Badge variant="outline" className="font-mono text-[10px]">
+            STEP 02 / 02
+          </Badge>
         </div>
-      </div>
+      </header>
+
+      <main className="px-4 pb-20 pt-8">
+        <div className="mx-auto max-w-2xl animate-fade-in">
+          <MacWindow title="profile.startup" subtitle="entrenando agente">
+            <form onSubmit={handleSubmit} className="p-8 sm:p-10">
+              <div className="mb-8">
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  / perfil de startup
+                </div>
+                <h1 className="mt-3 font-serif text-4xl leading-[1] tracking-tight sm:text-5xl">
+                  Tu <em className="italic text-accent">visión</em>, en pocas líneas.
+                </h1>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  Esto es lo que tu agente va a usar para encontrar talento alineado.
+                </p>
+              </div>
+
+              {error && (
+                <div className="mb-5 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nombre de la startup</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="ej. Nimbus AI"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">¿Qué hace tu startup?</Label>
+                  <Textarea
+                    id="description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    placeholder="Describí la misión, el problema que resolvés y la visión a 3 años…"
+                    rows={5}
+                  />
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {formData.description.length} caracteres · min 20
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Stack tecnológico · Enter para agregar</Label>
+                  <Input
+                    type="text"
+                    value={stackInput}
+                    onChange={(e) => setStackInput(e.target.value)}
+                    onKeyDown={addStack}
+                    placeholder="React, Node.js, PostgreSQL…"
+                  />
+                  {formData.stack.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1.5">
+                      {formData.stack.map((tech, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => removeStack(i)}
+                          className="group inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs text-accent-foreground transition hover:opacity-90"
+                        >
+                          {tech}
+                          <X className="size-3 opacity-60 group-hover:opacity-100" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Valores de cultura · Enter para agregar</Label>
+                  <Input
+                    type="text"
+                    value={cultureInput}
+                    onChange={(e) => setCultureInput(e.target.value)}
+                    onKeyDown={addCulture}
+                    placeholder="Innovación, Transparencia, Velocidad…"
+                  />
+                  {formData.culture_values.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1.5">
+                      {formData.culture_values.map((value, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => removeCulture(i)}
+                          className="group inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1 text-xs text-background transition hover:bg-foreground/85"
+                        >
+                          {value}
+                          <X className="size-3 opacity-60 group-hover:opacity-100" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  size="lg"
+                  variant="accent"
+                  className="w-full glow-accent"
+                >
+                  {loading ? 'Activando agente…' : 'Activar el agente de mi startup'}
+                  {!loading && <ArrowUpRight className="size-4" />}
+                </Button>
+              </div>
+            </form>
+          </MacWindow>
+        </div>
+      </main>
     </div>
   )
 }

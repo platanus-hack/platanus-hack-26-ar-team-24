@@ -2,32 +2,30 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ArrowUpRight, Briefcase, Rocket, Cpu } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { AmbientBg } from '@/components/ambient-bg'
+import { Wordmark } from '@/components/wordmark'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 export default function SelectTypePage() {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<'talent' | 'founder' | null>(null)
   const [error, setError] = useState<string>('')
 
   const handleSelectType = async (userType: 'talent' | 'founder') => {
-    setLoading(true)
+    setLoading(userType)
     setError('')
 
     try {
-      console.log('Updating user type to:', userType)
-
-      const { data, error: updateError } = await supabase.auth.updateUser({
+      const { error: updateError } = await supabase.auth.updateUser({
         data: { user_type: userType },
       })
 
-      console.log('Update result:', { data, updateError })
-
       if (updateError) {
-        console.error('Update error:', updateError)
-        throw new Error(updateError.message || 'Failed to update user type')
+        throw new Error(updateError.message || 'No se pudo actualizar el tipo de usuario')
       }
-
-      console.log('User type updated successfully, redirecting...')
 
       if (userType === 'talent') {
         window.location.href = '/onboarding/candidate'
@@ -35,66 +33,118 @@ export default function SelectTypePage() {
         window.location.href = '/onboarding/startup'
       }
     } catch (err: any) {
-      console.error('Error in handleSelectType:', err)
-      setError(err.message || 'An error occurred. Please try again.')
-      setLoading(false)
+      setError(err.message || 'Ocurrió un error. Probá de nuevo.')
+      setLoading(null)
     }
   }
 
+  void router
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
-      <div className="w-full max-w-2xl">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
-            Welcome to AgentLink
-          </h1>
-          <p className="text-slate-400">What's your role?</p>
-        </div>
+    <div className="relative min-h-screen">
+      <AmbientBg />
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-center">
-            {error}
+      <header className="px-6 py-5">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
+          <Wordmark />
+          <Badge variant="outline" className="font-mono text-[10px]">
+            STEP 01 / 02
+          </Badge>
+        </div>
+      </header>
+
+      <main className="px-4 pb-20 pt-12">
+        <div className="mx-auto max-w-5xl animate-fade-in">
+          <div className="mb-12 text-center">
+            <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              / elegí tu rol
+            </div>
+            <h1 className="mt-4 font-serif text-5xl leading-[0.95] tracking-tight sm:text-7xl">
+              ¿Qué venís
+              <br />
+              a <em className="italic text-accent">construir</em>?
+            </h1>
+            <p className="mx-auto mt-6 max-w-md text-muted-foreground leading-relaxed">
+              Esto define qué tipo de agente te asignamos. Podés cambiarlo más tarde.
+            </p>
           </div>
-        )}
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Talent Path */}
-          <button
-            onClick={() => handleSelectType('talent')}
-            disabled={loading}
-            className="group p-8 bg-slate-800/50 border border-purple-500/30 rounded-xl hover:border-purple-400 transition-all hover:bg-slate-800/70 cursor-pointer disabled:opacity-50"
-          >
-            <div className="text-4xl mb-4">💼</div>
-            <h2 className="text-2xl font-bold mb-3 group-hover:text-purple-300 transition">
-              I'm a Talent
-            </h2>
-            <p className="text-slate-400 group-hover:text-slate-300 transition">
-              I'm looking to join a startup and grow with a team.
-            </p>
-            <div className="mt-6 inline-block px-6 py-2 bg-purple-600 group-hover:bg-purple-500 rounded-lg transition">
-              {loading ? 'Loading...' : 'Continue'}
+          {error && (
+            <div className="mx-auto mb-8 max-w-md rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-center text-sm text-destructive">
+              {error}
             </div>
-          </button>
+          )}
 
-          {/* Founder Path */}
-          <button
-            onClick={() => handleSelectType('founder')}
-            disabled={loading}
-            className="group p-8 bg-slate-800/50 border border-pink-500/30 rounded-xl hover:border-pink-400 transition-all hover:bg-slate-800/70 cursor-pointer disabled:opacity-50"
-          >
-            <div className="text-4xl mb-4">🚀</div>
-            <h2 className="text-2xl font-bold mb-3 group-hover:text-pink-300 transition">
-              I'm a Founder
-            </h2>
-            <p className="text-slate-400 group-hover:text-slate-300 transition">
-              I'm building a startup and looking for talented team members.
-            </p>
-            <div className="mt-6 inline-block px-6 py-2 bg-pink-600 group-hover:bg-pink-500 rounded-lg transition">
-              {loading ? 'Loading...' : 'Continue'}
-            </div>
-          </button>
+          <div className="grid gap-5 md:grid-cols-2">
+            {/* Talent */}
+            <button
+              onClick={() => handleSelectType('talent')}
+              disabled={loading !== null}
+              className={cn(
+                'group relative overflow-hidden rounded-3xl border border-border bg-card p-8 text-left transition-all duration-300',
+                'hover:-translate-y-1 hover:shadow-[0_24px_60px_-24px_rgba(0,0,0,0.18)]',
+                'disabled:opacity-50',
+                loading === 'talent' && 'ring-2 ring-foreground/30'
+              )}
+            >
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent" />
+              <div className="flex items-start justify-between">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-foreground text-background">
+                  <Briefcase className="size-5" />
+                </div>
+                <ArrowUpRight className="size-5 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
+              </div>
+              <div className="mt-12">
+                <Badge variant="outline" className="mb-3">Talento</Badge>
+                <h2 className="font-serif text-3xl leading-tight tracking-tight">
+                  Soy <em className="italic">talento</em>
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  Estoy buscando sumarme a una startup y crecer con un equipo.
+                </p>
+                <div className="mt-6 flex items-center gap-2 text-xs font-mono uppercase tracking-[0.18em] text-muted-foreground">
+                  <Cpu className="size-3.5" />
+                  {loading === 'talent' ? 'asignando agente…' : 'continuar'}
+                </div>
+              </div>
+            </button>
+
+            {/* Founder */}
+            <button
+              onClick={() => handleSelectType('founder')}
+              disabled={loading !== null}
+              className={cn(
+                'group relative overflow-hidden rounded-3xl border border-foreground bg-foreground p-8 text-left text-background transition-all duration-300',
+                'hover:-translate-y-1 hover:shadow-[0_24px_60px_-24px_rgba(0,0,0,0.4)]',
+                'disabled:opacity-50',
+                loading === 'founder' && 'ring-2 ring-accent'
+              )}
+            >
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/60 to-transparent" />
+              <div className="absolute -right-20 -top-20 size-64 rounded-full bg-accent/30 blur-3xl" aria-hidden />
+              <div className="relative flex items-start justify-between">
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
+                  <Rocket className="size-5" />
+                </div>
+                <ArrowUpRight className="size-5 text-background/60 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent" />
+              </div>
+              <div className="relative mt-12">
+                <Badge variant="accent" className="mb-3">Founder</Badge>
+                <h2 className="font-serif text-3xl leading-tight tracking-tight">
+                  Soy <em className="italic text-accent">founder</em>
+                </h2>
+                <p className="mt-3 text-sm leading-relaxed text-background/70">
+                  Estoy construyendo una startup y busco team members talentosos.
+                </p>
+                <div className="mt-6 flex items-center gap-2 text-xs font-mono uppercase tracking-[0.18em] text-background/60">
+                  <Cpu className="size-3.5" />
+                  {loading === 'founder' ? 'asignando agente…' : 'continuar'}
+                </div>
+              </div>
+            </button>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

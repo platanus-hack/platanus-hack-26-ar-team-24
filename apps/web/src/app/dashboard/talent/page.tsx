@@ -2,8 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { ArrowUpRight, Github, Linkedin, LogOut, Sparkles } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+import { AmbientBg } from '@/components/ambient-bg'
+import { Wordmark } from '@/components/wordmark'
+import { MacWindow } from '@/components/mac-window'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 export default function TalentDashboard() {
   const router = useRouter()
@@ -15,7 +21,9 @@ export default function TalentDashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
 
         if (!session) {
           router.push('/auth')
@@ -24,7 +32,6 @@ export default function TalentDashboard() {
 
         setUser(session.user)
 
-        // Load candidate profile from Supabase
         const { data: profile, error } = await supabase
           .from('candidate_profiles')
           .select('*')
@@ -55,131 +62,207 @@ export default function TalentDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+      <div className="relative flex min-h-screen items-center justify-center">
+        <AmbientBg />
+        <div className="size-12 rounded-full bg-foreground animate-pulse-ring" />
       </div>
     )
   }
 
   if (!hasProfile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
-        <div className="max-w-2xl w-full">
-          <div className="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-6 text-center">
-            <h2 className="text-xl font-bold mb-4">Complete Your Profile First</h2>
-            <p className="text-slate-400 mb-6">Create your candidate profile to get matched with startups looking for talent like you.</p>
-            <Link href="/onboarding/candidate" className="inline-block px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
-              Create Candidate Profile
-            </Link>
-          </div>
+      <div className="relative min-h-screen px-4 py-16">
+        <AmbientBg />
+        <div className="mx-auto max-w-xl">
+          <MacWindow title="profile required">
+            <div className="p-10 text-center">
+              <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
+                <Sparkles className="size-5" />
+              </div>
+              <h2 className="font-serif text-3xl leading-tight tracking-tight">
+                Antes de matchear, <em className="italic">contate</em>.
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                Creá tu perfil de talento para que los agentes puedan encontrarte.
+              </p>
+              <Button asChild size="lg" variant="default" className="mt-6">
+                <Link href="/onboarding/candidate">
+                  Crear perfil
+                  <ArrowUpRight className="size-4" />
+                </Link>
+              </Button>
+            </div>
+          </MacWindow>
         </div>
       </div>
     )
   }
 
-  const username = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0]
+  const username =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split('@')[0]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
-              Welcome, {username}!
-            </h1>
-            <p className="text-slate-400">Your profile is live and founders can now see you in AI-powered matching</p>
+    <div className="relative min-h-screen">
+      <AmbientBg />
+
+      {/* Top bar */}
+      <header className="sticky top-4 z-40 px-4">
+        <nav className="mx-auto flex max-w-5xl items-center justify-between gap-4 glass rounded-full px-3 py-2 pl-5">
+          <Wordmark />
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="font-mono text-[10px]">
+              <span className="mr-1 size-1.5 rounded-full bg-traffic-green" />
+              talento · activo
+            </Badge>
+            <Button onClick={handleLogout} size="sm" variant="ghost">
+              <LogOut className="size-3.5" />
+              Salir
+            </Button>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
-          >
-            Logout
-          </button>
-        </div>
+        </nav>
+      </header>
 
-        {/* Profile Summary */}
-        {profileData && (
-          <div className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-8">
-            <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
+      <main className="px-4 pb-20 pt-12">
+        <div className="mx-auto max-w-5xl space-y-6 animate-fade-in">
+          {/* Hero */}
+          <div className="flex flex-col gap-2 px-2">
+            <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              / dashboard · talento
+            </div>
+            <h1 className="font-serif text-5xl leading-[0.95] tracking-tight sm:text-7xl">
+              Hola, <em className="italic text-accent">{username}</em>.
+            </h1>
+            <p className="mt-2 max-w-xl text-muted-foreground leading-relaxed">
+              Tu perfil está vivo. Founders y agentes están explorando match en este momento.
+            </p>
+          </div>
 
-            <div className="space-y-6">
-              {/* Bio */}
-              <div>
-                <h3 className="font-semibold text-purple-400 mb-2">About You</h3>
-                <p className="text-slate-300">{profileData.bio}</p>
+          {/* Status card */}
+          <div className="grid gap-5 md:grid-cols-3">
+            <div className="rounded-2xl border border-border bg-card p-6 md:col-span-2">
+              <div className="flex items-center justify-between">
+                <Badge variant="soft" className="rounded-md">
+                  Sobre vos
+                </Badge>
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  bio
+                </span>
               </div>
+              <p className="mt-4 font-serif text-xl leading-snug text-foreground">
+                "{profileData?.bio}"
+              </p>
+            </div>
 
-              {/* Experience */}
-              <div>
-                <h3 className="font-semibold text-purple-400 mb-2">Experience</h3>
-                <p className="text-slate-300">{profileData.experience_years} years</p>
-              </div>
-
-              {/* Skills */}
-              {profileData.skills && profileData.skills.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-purple-400 mb-3">Skills</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {profileData.skills.map((skill: string, i: number) => (
-                      <span key={i} className="px-3 py-1 bg-purple-600 rounded-full text-sm">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
+            <div className="relative overflow-hidden rounded-2xl border border-foreground bg-foreground p-6 text-background">
+              <div
+                className="absolute -right-16 -top-16 size-48 rounded-full bg-accent/30 blur-3xl"
+                aria-hidden
+              />
+              <div className="relative">
+                <Badge variant="accent" className="rounded-md">
+                  Experiencia
+                </Badge>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <span className="font-serif text-6xl leading-none tracking-tight text-accent">
+                    {profileData?.experience_years ?? 0}
+                  </span>
+                  <span className="font-mono text-xs uppercase tracking-wider text-background/60">
+                    años
+                  </span>
                 </div>
-              )}
-
-              {/* Technologies */}
-              {profileData.technologies && profileData.technologies.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-purple-400 mb-3">Technologies</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {profileData.technologies.map((tech: string, i: number) => (
-                      <span key={i} className="px-3 py-1 bg-pink-600 rounded-full text-sm">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Links */}
-              <div className="flex gap-4">
-                {profileData.github_url && (
-                  <a
-                    href={profileData.github_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
-                  >
-                    GitHub
-                  </a>
-                )}
-                {profileData.linkedin_url && (
-                  <a
-                    href={profileData.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
-                  >
-                    LinkedIn
-                  </a>
-                )}
+                <p className="mt-2 text-xs text-background/60">
+                  en industria · validados por agente
+                </p>
               </div>
             </div>
           </div>
-        )}
 
-        {/* Waiting for Matches */}
-        <div className="text-center py-12 bg-slate-800/30 border border-purple-500/20 rounded-xl">
-          <div className="text-6xl mb-4">✨</div>
-          <h3 className="text-xl font-bold mb-2">Waiting for Matches</h3>
-          <p className="text-slate-400">
-            Founders are using our AI agents to find talent. When a founder's AI agent finds you're a match, you'll be notified!
-          </p>
+          {/* Skills + Tech */}
+          <div className="grid gap-5 md:grid-cols-2">
+            {profileData?.skills && profileData.skills.length > 0 && (
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <div className="flex items-center justify-between">
+                  <Badge variant="soft" className="rounded-md">
+                    Skills
+                  </Badge>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {profileData.skills.length} items
+                  </span>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {profileData.skills.map((skill: string, i: number) => (
+                    <Badge key={i} variant="default" className="rounded-md">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {profileData?.technologies && profileData.technologies.length > 0 && (
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <div className="flex items-center justify-between">
+                  <Badge variant="soft" className="rounded-md">
+                    Tecnologías
+                  </Badge>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {profileData.technologies.length} items
+                  </span>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {profileData.technologies.map((tech: string, i: number) => (
+                    <Badge key={i} variant="accent" className="rounded-md">
+                      {tech}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Links */}
+          {(profileData?.github_url || profileData?.linkedin_url) && (
+            <div className="flex flex-wrap gap-2 px-1">
+              {profileData?.github_url && (
+                <Button asChild variant="outline" size="sm">
+                  <a href={profileData.github_url} target="_blank" rel="noopener noreferrer">
+                    <Github className="size-3.5" />
+                    GitHub
+                  </a>
+                </Button>
+              )}
+              {profileData?.linkedin_url && (
+                <Button asChild variant="outline" size="sm">
+                  <a href={profileData.linkedin_url} target="_blank" rel="noopener noreferrer">
+                    <Linkedin className="size-3.5" />
+                    LinkedIn
+                  </a>
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Waiting state */}
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-10 text-center">
+            <div className="mx-auto mb-6 flex size-16 items-center justify-center">
+              <span className="absolute size-16 rounded-full bg-accent/20 animate-pulse-ring" />
+              <span className="relative size-3 rounded-full bg-accent" />
+            </div>
+            <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              / matching engine · activo
+            </div>
+            <h3 className="mt-3 font-serif text-3xl leading-tight tracking-tight">
+              Esperando <em className="italic">la persona indicada</em>.
+            </h3>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+              Los agentes de los founders están analizando tu perfil. Cuando haya un
+              match relevante, te avisamos.
+            </p>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
