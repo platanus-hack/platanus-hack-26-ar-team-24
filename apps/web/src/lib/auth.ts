@@ -95,6 +95,63 @@ export async function logout() {
   clearAuth()
 }
 
+export async function login(email: string, password: string): Promise<AuthUser> {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (error) throw new Error(error.message)
+  if (!data.user) throw new Error('Login failed')
+
+  const user: AuthUser = {
+    id: data.user.id,
+    email: data.user.email || '',
+    username: data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split('@')[0],
+    user_type: data.user.user_metadata?.user_type as 'talent' | 'founder' | undefined,
+  }
+
+  authState = {
+    user,
+    token: data.session?.access_token || null,
+    isAuthenticated: true,
+    isLoading: false,
+  }
+
+  notifyListeners()
+  return user
+}
+
+export async function register(email: string, password: string, user_type: 'talent' | 'founder'): Promise<AuthUser> {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { user_type },
+    },
+  })
+
+  if (error) throw new Error(error.message)
+  if (!data.user) throw new Error('Registration failed')
+
+  const user: AuthUser = {
+    id: data.user.id,
+    email: data.user.email || '',
+    username: data.user.email?.split('@')[0],
+    user_type,
+  }
+
+  authState = {
+    user,
+    token: data.session?.access_token || null,
+    isAuthenticated: !!data.session,
+    isLoading: false,
+  }
+
+  notifyListeners()
+  return user
+}
+
 if (typeof window !== 'undefined') {
   syncAuthFromSupabase()
 

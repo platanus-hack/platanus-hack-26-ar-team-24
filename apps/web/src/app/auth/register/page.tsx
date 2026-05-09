@@ -56,7 +56,6 @@ function RegisterForm() {
     try {
       await register(
         formData.email,
-        formData.username,
         formData.password,
         formData.user_type
       )

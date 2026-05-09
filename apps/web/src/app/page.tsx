@@ -145,8 +145,7 @@ export default function Home() {
                     Founder · Buenos Aires
                   </div>
                   <div className="mt-4 font-serif text-2xl leading-tight text-foreground">
-                    "Buscamos un fullstack que sepa de IA y se banque
-                    construir desde cero."
+                    {`"Buscamos un fullstack que sepa de IA y se banque construir desde cero."`}
                   </div>
                   <div className="mt-6 flex flex-wrap gap-1.5">
                     {['React', 'Python', 'OpenAI', 'PostgreSQL', 'Early-stage'].map((t) => (
