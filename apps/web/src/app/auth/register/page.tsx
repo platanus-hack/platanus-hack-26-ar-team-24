@@ -72,14 +72,14 @@ function RegisterForm() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="bg-slate-800/50 border border-purple-500/30 rounded-2xl p-8 backdrop-blur">
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+      <div className="bg-white border border-secondary rounded-3xl p-8 shadow-sm">
+        <h1 className="text-3xl font-playfair font-bold mb-2 text-primary">
           Join AgentLink
         </h1>
-        <p className="text-slate-400 mb-8">Start your journey today</p>
+        <p className="text-primary/70 mb-8 font-inter">Start your journey today</p>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
             {error}
           </div>
         )}
@@ -87,12 +87,12 @@ function RegisterForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* User Type Selection */}
           <div>
-            <label className="block text-sm font-medium mb-2">I am a</label>
+            <label className="block text-sm font-medium mb-2 text-primary">I am a</label>
             <select
               name="user_type"
               value={formData.user_type}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-500"
+              className="w-full px-4 py-2 bg-white border border-secondary rounded-lg text-primary focus:outline-none focus:border-primary transition"
             >
               <option value="talent">Talent (Job Seeker)</option>
               <option value="founder">Founder</option>
@@ -101,53 +101,53 @@ function RegisterForm() {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
+            <label className="block text-sm font-medium mb-2 text-primary">Email</label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               placeholder="you@example.com"
-              className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+              className="w-full px-4 py-2 bg-white border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary transition"
             />
           </div>
 
           {/* Username */}
           <div>
-            <label className="block text-sm font-medium mb-2">Username</label>
+            <label className="block text-sm font-medium mb-2 text-primary">Username</label>
             <input
               type="text"
               name="username"
               value={formData.username}
               onChange={handleChange}
               placeholder="your_username"
-              className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+              className="w-full px-4 py-2 bg-white border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary transition"
             />
           </div>
 
           {/* Password */}
           <div>
-            <label className="block text-sm font-medium mb-2">Password</label>
+            <label className="block text-sm font-medium mb-2 text-primary">Password</label>
             <input
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
               placeholder="••••••••"
-              className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+              className="w-full px-4 py-2 bg-white border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary transition"
             />
           </div>
 
           {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-medium mb-2">Confirm Password</label>
+            <label className="block text-sm font-medium mb-2 text-primary">Confirm Password</label>
             <input
               type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="••••••••"
-              className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+              className="w-full px-4 py-2 bg-white border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary transition"
             />
           </div>
 
@@ -155,16 +155,16 @@ function RegisterForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg font-semibold transition-all mt-6"
+            className="w-full py-2 bg-primary text-white hover:bg-opacity-90 disabled:opacity-50 rounded-full font-semibold transition-all mt-6"
           >
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 
         {/* Login Link */}
-        <p className="text-center text-slate-400 mt-6">
+        <p className="text-center text-primary/70 mt-6 font-inter">
           Already have an account?{' '}
-          <Link href="/auth/login" className="text-purple-400 hover:text-purple-300">
+          <Link href="/auth/login" className="text-primary hover:text-primary/80 font-semibold">
             Log in
           </Link>
         </p>

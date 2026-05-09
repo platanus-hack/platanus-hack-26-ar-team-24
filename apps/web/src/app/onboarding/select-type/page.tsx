@@ -104,7 +104,7 @@ export default function SelectTypePage() {
             disabled={loading}
             className="group p-8 bg-white border border-secondary rounded-3xl hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
           >
-            <div className="text-4xl mb-4">💼</div>
+            <div className="h-16 w-16 bg-primary/10 rounded-full mb-4"></div>
             <h2 className="text-2xl font-playfair font-bold mb-3 group-hover:text-primary/80 transition text-primary">
               I'm a Talent
             </h2>
@@ -122,7 +122,7 @@ export default function SelectTypePage() {
             disabled={loading}
             className="group p-8 bg-white border border-secondary rounded-3xl hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
           >
-            <div className="text-4xl mb-4">🚀</div>
+            <div className="h-16 w-16 bg-primary/10 rounded-full mb-4"></div>
             <h2 className="text-2xl font-playfair font-bold mb-3 group-hover:text-primary/80 transition text-primary">
               I'm a Founder
             </h2>

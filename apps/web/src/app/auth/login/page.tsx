@@ -51,16 +51,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <div className="bg-slate-800/50 border border-purple-500/30 rounded-2xl p-8 backdrop-blur">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+        <div className="bg-white border border-secondary rounded-3xl p-8 shadow-sm">
+          <h1 className="text-3xl font-playfair font-bold mb-2 text-primary">
             Welcome Back
           </h1>
-          <p className="text-slate-400 mb-8">Log in to your account</p>
+          <p className="text-primary/70 mb-8 font-inter">Log in to your account</p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {error}
             </div>
           )}
@@ -68,27 +68,27 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
+              <label className="block text-sm font-medium mb-2 text-primary">Email</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="you@example.com"
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-4 py-2 bg-white border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary transition"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
+              <label className="block text-sm font-medium mb-2 text-primary">Password</label>
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-4 py-2 bg-white border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary transition"
               />
             </div>
 
@@ -96,16 +96,16 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg font-semibold transition-all mt-6"
+              className="w-full py-2 bg-primary text-white hover:bg-opacity-90 disabled:opacity-50 rounded-full font-semibold transition-all mt-6"
             >
               {loading ? 'Logging in...' : 'Log In'}
             </button>
           </form>
 
           {/* Register Link */}
-          <p className="text-center text-slate-400 mt-6">
+          <p className="text-center text-primary/70 mt-6 font-inter">
             Don't have an account?{' '}
-            <Link href="/auth/register" className="text-purple-400 hover:text-purple-300">
+            <Link href="/auth/register" className="text-primary hover:text-primary/80 font-semibold">
               Sign up
             </Link>
           </p>

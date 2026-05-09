@@ -84,7 +84,7 @@ export default function Home() {
           {/* Talent Path */}
           <Link href="/auth" className="group no-underline">
             <div className="p-8 bg-white border border-secondary rounded-3xl hover:shadow-md transition-all cursor-pointer">
-              <div className="text-4xl mb-4">💼</div>
+              <div className="h-16 w-16 bg-primary/10 rounded-full mb-4"></div>
               <h2 className="text-2xl font-playfair font-bold mb-3 group-hover:text-primary/80 transition text-primary">
                 Busco sumarme a una startup
               </h2>
@@ -100,7 +100,7 @@ export default function Home() {
           {/* Founder Path */}
           <Link href="/auth/register?type=founder" className="group">
             <div className="p-8 bg-white border border-secondary rounded-3xl hover:shadow-md transition-all cursor-pointer">
-              <div className="text-4xl mb-4">🚀</div>
+              <div className="h-16 w-16 bg-primary/10 rounded-full mb-4"></div>
               <h2 className="text-2xl font-playfair font-bold mb-3 group-hover:text-primary/80 transition text-primary">
                 Busco gente para mi startup
               </h2>
@@ -121,17 +121,17 @@ export default function Home() {
           <h2 className="text-3xl font-playfair font-bold text-center mb-12 text-primary">How AgentLink Works</h2>
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="text-3xl mb-4">1️⃣</div>
+              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 mx-auto mb-4 text-primary font-playfair font-bold">1</div>
               <h3 className="font-playfair font-bold mb-2 text-primary">Create Your Profile</h3>
               <p className="text-primary/70">Tell us about your skills, experience, or startup vision.</p>
             </div>
             <div className="text-center">
-              <div className="text-3xl mb-4">2️⃣</div>
+              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 mx-auto mb-4 text-primary font-playfair font-bold">2</div>
               <h3 className="font-playfair font-bold mb-2 text-primary">AI Matching</h3>
               <p className="text-primary/70">Our AI agents analyze compatibility based on skills, culture, and goals.</p>
             </div>
             <div className="text-center">
-              <div className="text-3xl mb-4">3️⃣</div>
+              <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 mx-auto mb-4 text-primary font-playfair font-bold">3</div>
               <h3 className="font-playfair font-bold mb-2 text-primary">Connect</h3>
               <p className="text-primary/70">Get matched with compatible people and start building together.</p>
             </div>

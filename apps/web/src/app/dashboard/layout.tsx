@@ -30,20 +30,20 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="border-b border-purple-500/20 bg-slate-900/50 backdrop-blur">
+      <nav className="border-b border-secondary bg-white">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <Link href="/" className="text-2xl font-playfair font-bold text-primary">
             AgentLink
           </Link>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-primary/70">
               {auth.user?.username} ({auth.user?.user_type})
             </span>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition"
+              className="px-4 py-2 text-primary hover:bg-secondary/30 rounded-full transition"
             >
               Logout
             </button>
