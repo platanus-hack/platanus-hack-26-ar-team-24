@@ -59,9 +59,8 @@ function RegisterForm() {
         formData.password,
         formData.user_type
       )
-      router.push(
-        formData.user_type === 'talent' ? '/onboarding/candidate' : '/onboarding/startup'
-      )
+      // Primero sincronizar identidad digital, luego completar perfil
+      router.push('/onboarding/identity-sync')
     } catch (err: any) {
       setError(err.message || 'No se pudo crear la cuenta')
     } finally {
