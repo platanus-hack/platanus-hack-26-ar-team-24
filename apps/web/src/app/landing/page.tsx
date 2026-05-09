@@ -43,8 +43,8 @@ export default function LandingPage() {
       <header className="relative z-10 max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
         <Logo />
         <div className="flex items-center gap-6 text-sm text-zinc-400">
-          <Link href="/onboarding/sync" className="hover:text-white transition-colors hidden sm:inline">
-            Demo
+          <Link href="/auth" className="hover:text-white transition-colors hidden sm:inline">
+            Iniciar sesión
           </Link>
           <Link
             href="/auth"
@@ -83,10 +83,10 @@ export default function LandingPage() {
             <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
           </Link>
           <Link
-            href="/onboarding/sync"
+            href="/auth"
             className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/10 bg-white/[0.03] text-white font-medium text-sm hover:bg-white/[0.06] transition-colors min-h-[48px]"
           >
-            Ver una simulación
+            Ya tengo cuenta
           </Link>
         </div>
       </section>

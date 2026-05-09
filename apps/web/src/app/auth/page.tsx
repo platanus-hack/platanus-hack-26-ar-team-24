@@ -1,32 +1,34 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Quote, Loader2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 import Logo from '@/components/layout/Logo'
 
 export default function AuthPage() {
-  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Single auth gate. Backend swaps the simulated promise below for the real
-  // Supabase Auth call — the rest of the flow (loading state, redirect, error
-  // handling) stays untouched.
-  const handleAuthSubmit = async () => {
+  const handleGoogleLogin = async () => {
     if (isLoading) return
     setError(null)
     setIsLoading(true)
 
     try {
-      // TODO(backend): replace with `await supabase.auth.signInWithOAuth(...)`
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
 
-      router.push('/onboarding/sync')
+      if (oauthError) {
+        throw oauthError
+      }
     } catch (err) {
-      console.error('Auth error:', err)
-      setError('No pudimos iniciar tu sesión. Intentá de nuevo.')
+      console.error('Google OAuth error:', err)
+      setError('No pudimos iniciar tu sesión con Google. Intentá de nuevo.')
       setIsLoading(false)
     }
   }
@@ -114,7 +116,7 @@ export default function AuthPage() {
           <div className="space-y-3">
             <button
               type="button"
-              onClick={handleAuthSubmit}
+              onClick={handleGoogleLogin}
               disabled={isLoading}
               aria-busy={isLoading}
               className="w-full py-3.5 px-4 bg-white text-black rounded-xl font-medium text-sm hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2.5 min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed"
@@ -137,15 +139,12 @@ export default function AuthPage() {
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={handleAuthSubmit}
-              disabled={isLoading}
-              aria-busy={isLoading}
-              className="w-full py-3.5 px-4 rounded-xl border border-white/10 bg-white/[0.03] text-white font-medium text-sm hover:bg-white/[0.06] transition-colors flex items-center justify-center min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed"
+            <Link
+              href="/auth/login"
+              className="w-full py-3.5 px-4 rounded-xl border border-white/10 bg-white/[0.03] text-white font-medium text-sm hover:bg-white/[0.06] transition-colors flex items-center justify-center min-h-[48px]"
             >
-              {isLoading ? 'Conectando…' : 'Email y contraseña'}
-            </button>
+              Email y contraseña
+            </Link>
           </div>
 
           <p className="text-center text-xs text-zinc-600 mt-10">
