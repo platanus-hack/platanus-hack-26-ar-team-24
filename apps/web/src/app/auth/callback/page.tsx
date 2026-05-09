@@ -41,8 +41,8 @@ export default function CallbackPage() {
         // Wait a moment for storage to complete
         await new Promise(resolve => setTimeout(resolve, 200))
 
-        console.log('✅ Redirecting to select-type...')
-        window.location.href = '/onboarding/select-type'
+        console.log('✅ Redirecting to home to check user status...')
+        window.location.href = '/'
       } catch (err) {
         console.error('Callback error:', err)
         window.location.href = '/auth'

@@ -18,22 +18,29 @@ export default function TalentDashboard() {
         const { data: { session } } = await supabase.auth.getSession()
 
         if (!session) {
+          console.log('No session found, redirecting to auth')
           router.push('/auth')
           return
         }
 
+        console.log('✅ Session found for user:', session.user.id)
         setUser(session.user)
 
         // Load candidate profile from Supabase
+        console.log('Loading candidate profile for user:', session.user.id)
         const { data: profile, error } = await supabase
           .from('candidate_profiles')
           .select('*')
           .eq('user_id', session.user.id)
           .single()
 
+        console.log('Profile load result:', { profile, error })
+
         if (error || !profile) {
+          console.log('No profile found - showing complete profile prompt')
           setHasProfile(false)
         } else {
+          console.log('✅ Profile found, setting data:', profile)
           setProfileData(profile)
           setHasProfile(true)
         }

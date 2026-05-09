@@ -17,20 +17,23 @@ export default function SelectTypePage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      console.log('Creating/updating user with type:', userType)
+      console.log('👤 Creating/updating user with type:', userType, 'User ID:', user.id)
 
       const username = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'user'
 
       // Check if user exists in users table
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: checkError } = await supabase
         .from('users')
         .select('id')
         .eq('id', user.id)
         .maybeSingle()
 
+      console.log('User existence check:', { existingUser, checkError })
+
       if (!existingUser) {
+        console.log('Creating new user record...')
         // Create user record with user_type
-        const { error: createError } = await supabase
+        const { error: createError, data: createData } = await supabase
           .from('users')
           .insert([{
             id: user.id,
@@ -39,25 +42,32 @@ export default function SelectTypePage() {
             user_type: userType,
             password_hash: 'oauth_user',
           }])
+          .select()
+
+        console.log('User create result:', { createData, createError })
 
         if (createError) {
-          console.error('User create error:', createError)
+          console.error('❌ User create error:', createError)
           throw createError
         }
       } else {
+        console.log('Updating existing user...')
         // Update existing user with user_type
-        const { error: updateError } = await supabase
+        const { error: updateError, data: updateData } = await supabase
           .from('users')
           .update({ user_type: userType })
           .eq('id', user.id)
+          .select()
+
+        console.log('User update result:', { updateData, updateError })
 
         if (updateError) {
-          console.error('User update error:', updateError)
+          console.error('❌ User update error:', updateError)
           throw updateError
         }
       }
 
-      console.log('User type saved successfully, redirecting...')
+      console.log('✅ User type saved successfully, redirecting...')
 
       if (userType === 'talent') {
         window.location.href = '/onboarding/candidate'
@@ -65,7 +75,7 @@ export default function SelectTypePage() {
         window.location.href = '/onboarding/startup'
       }
     } catch (err: any) {
-      console.error('Error in handleSelectType:', err)
+      console.error('❌ Error in handleSelectType:', err)
       setError(err.message || 'An error occurred. Please try again.')
       setLoading(false)
     }
