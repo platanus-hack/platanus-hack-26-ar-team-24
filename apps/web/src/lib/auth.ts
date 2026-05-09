@@ -5,6 +5,8 @@ export interface AuthUser {
   email: string
   username?: string
   user_type?: 'talent' | 'founder'
+  name?: string
+  avatar_url?: string
 }
 
 export interface AuthState {
@@ -50,6 +52,8 @@ async function syncAuthFromSupabase() {
           email: session.user.email || '',
           username: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
           user_type: session.user.user_metadata?.user_type,
+          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
+          avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
         },
         token: session.access_token,
         isAuthenticated: true,
@@ -106,6 +110,8 @@ if (typeof window !== 'undefined') {
           email: session.user.email || '',
           username: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
           user_type: session.user.user_metadata?.user_type,
+          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
+          avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
         },
         token: session.access_token,
         isAuthenticated: true,

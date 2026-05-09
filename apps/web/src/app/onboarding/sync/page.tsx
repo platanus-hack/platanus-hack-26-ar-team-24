@@ -1,8 +1,7 @@
 'use client'
 
 import IdentitySync from '@/components/onboarding/IdentitySync'
-import AppHeader from '@/components/layout/AppHeader'
-import FlowNav from '@/components/layout/FlowNav'
+import AppNav from '@/components/layout/AppNav'
 import Section from '@/components/dashboard/Section'
 import { GitBranch, Briefcase, Music as MusicIcon } from 'lucide-react'
 
@@ -23,7 +22,7 @@ const SOURCES = [
 export default function SyncPage() {
   return (
     <div className="min-h-screen bg-ink-950 text-white">
-      <AppHeader meta="/onboarding/sync" />
+      <AppNav />
 
       <main className="max-w-5xl mx-auto px-6 py-16">
         <div className="mb-16 max-w-2xl">
@@ -55,11 +54,6 @@ export default function SyncPage() {
         >
           <IdentitySync />
         </Section>
-
-        <FlowNav
-          prev={{ href: '/auth', label: 'Volver a Acceder' }}
-          next={{ href: '/dashboard', label: 'Continuar al Dashboard' }}
-        />
       </main>
     </div>
   )

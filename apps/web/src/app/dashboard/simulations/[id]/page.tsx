@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { notFound, useParams } from 'next/navigation'
 import Link from 'next/link'
-import AppHeader from '@/components/layout/AppHeader'
+import AppNav from '@/components/layout/AppNav'
 import { ArrowLeft, ThumbsUp, ThumbsDown, Bot, Quote } from 'lucide-react'
 import { getSimulation, type SimStatus } from '@/lib/simulations'
 
@@ -25,7 +25,7 @@ export default function SimulationDetailPage() {
 
   return (
     <div className="min-h-screen bg-ink-950 text-white">
-      <AppHeader meta={`/simulations/${sim.id}`} />
+      <AppNav />
 
       <main className="max-w-5xl mx-auto px-6 py-12">
         <Link

@@ -1,7 +1,6 @@
 'use client'
 
-import FlowNav from '@/components/layout/FlowNav'
-import AppHeader from '@/components/layout/AppHeader'
+import AppNav from '@/components/layout/AppNav'
 import { Bot, ChevronRight } from 'lucide-react'
 
 const TRANSCRIPT = [
@@ -15,15 +14,7 @@ const TRANSCRIPT = [
 export default function ArenaPage() {
   return (
     <div className="min-h-screen bg-ink-950 text-white">
-      <AppHeader
-        maxWidth="max-w-7xl"
-        rightSlot={
-          <div className="flex items-center gap-2 text-xs text-zinc-500 font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            simulation · live
-          </div>
-        }
-      />
+      <AppNav maxWidth="max-w-7xl" />
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-10">
@@ -87,9 +78,6 @@ export default function ArenaPage() {
           </div>
         </div>
 
-        <FlowNav
-          prev={{ href: '/dashboard', label: 'Volver al Dashboard' }}
-        />
       </main>
     </div>
   )

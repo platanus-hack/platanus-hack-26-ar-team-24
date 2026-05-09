@@ -1,7 +1,6 @@
 'use client'
 
-import FlowNav from '@/components/layout/FlowNav'
-import AppHeader from '@/components/layout/AppHeader'
+import AppNav from '@/components/layout/AppNav'
 import Section from '@/components/dashboard/Section'
 import SimStats from '@/components/dashboard/SimStats'
 import AgentFeedback from '@/components/dashboard/AgentFeedback'
@@ -20,7 +19,7 @@ const STACK = ['TypeScript', 'Python', 'React', 'Postgres', 'AI/ML']
 export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-ink-950 text-white">
-      <AppHeader meta="/dashboard" />
+      <AppNav />
 
       <main className="max-w-6xl mx-auto px-6 py-16">
         <div className="mb-16">
@@ -112,10 +111,6 @@ export default function DashboardPage() {
           <AgentFeedback />
         </Section>
 
-        <FlowNav
-          prev={{ href: '/onboarding/sync', label: 'Volver a Identity Sync' }}
-          next={{ href: '/arena', label: 'Entrar a la Arena' }}
-        />
       </main>
     </div>
   )
