@@ -58,4 +58,26 @@ Payload ejemplo para crear un agente:
 
 ## Railway
 
-Configura un volumen en `/data` y expón el puerto `8080`.
+Desplegalo como un servicio separado con:
+
+- `Root Directory`: `openclaw/`
+- `Dockerfile Path`: `Dockerfile`
+- volumen montado en `/data`
+- `PORT`: `8080`
+
+Variables recomendadas:
+
+```env
+PORT=8080
+ADMIN_API_TOKEN=<token-interno>
+OPENCLAW_GATEWAY_TOKEN=<token-openclaw>
+OPENCLAW_PUBLIC_BASE_URL=https://tu-servicio-openclaw.up.railway.app
+OPENCLAW_GATEWAY_PORT=18789
+OPENCLAW_GATEWAY_BIND=loopback
+OPENCLAW_STATE_DIR=/data/.openclaw
+OPENCLAW_WORKSPACE_ROOT=/data/workspaces
+OPENCLAW_DEFAULT_MODEL=openai/gpt-4o-mini
+OPENAI_API_KEY=<si-usan-openai>
+```
+
+`OPENCLAW_ADMIN_API_TOKEN` sigue siendo aceptado como alias de compatibilidad para `ADMIN_API_TOKEN`, pero en Railway conviene configurar `ADMIN_API_TOKEN` como nombre principal.

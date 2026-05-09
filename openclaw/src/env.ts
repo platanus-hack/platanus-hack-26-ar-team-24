@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+const rawAdminApiToken = process.env.ADMIN_API_TOKEN ?? process.env.OPENCLAW_ADMIN_API_TOKEN;
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(8080),
@@ -16,4 +18,7 @@ const envSchema = z.object({
 
 export type RuntimeEnv = z.infer<typeof envSchema>;
 
-export const env = envSchema.parse(process.env);
+export const env = envSchema.parse({
+  ...process.env,
+  ADMIN_API_TOKEN: rawAdminApiToken ?? process.env.ADMIN_API_TOKEN
+});
