@@ -12,7 +12,16 @@ export default function Home() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        // Add timeout to prevent infinite waiting
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Session check timeout')), 5000)
+        )
+
+        const { data: { session } } = await Promise.race([
+          sessionPromise,
+          timeoutPromise,
+        ]) as any
 
         if (session) {
           console.log('✅ Session found for user:', session.user.id)
@@ -41,9 +50,11 @@ export default function Home() {
           }
         }
 
+        console.log('✅ No session, showing landing page')
         setLoading(false)
       } catch (error) {
         console.error('Error checking session:', error)
+        console.log('Showing landing page due to error or timeout')
         setLoading(false)
       }
     }
