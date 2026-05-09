@@ -178,16 +178,16 @@ export default function StartupOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <div className="bg-slate-800/50 border border-pink-500/30 rounded-2xl p-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
+        <div className="bg-white border border-secondary rounded-3xl p-8 shadow-sm">
+          <h1 className="text-3xl font-playfair font-bold mb-2 text-primary">
             Create Your Startup Profile
           </h1>
-          <p className="text-slate-400 mb-8">Tell us about your vision and what you're looking for in team members</p>
+          <p className="text-primary/70 mb-8">Tell us about your vision and what you're looking for in team members</p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+            <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg text-red-700 text-sm">
               {error}
             </div>
           )}
@@ -195,50 +195,50 @@ export default function StartupOnboarding() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Startup Name */}
             <div>
-              <label className="block text-sm font-medium mb-2">Startup Name</label>
+              <label className="block text-sm font-medium mb-2 text-primary">Startup Name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="e.g., TechAI Inc"
-                className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
+                className="w-full px-4 py-2 bg-background border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary"
               />
             </div>
 
             {/* Description */}
             <div>
-              <label className="block text-sm font-medium mb-2">What does your startup do?</label>
+              <label className="block text-sm font-medium mb-2 text-primary">What does your startup do?</label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Describe your startup's mission, what problems you solve, and your vision for the future..."
                 rows={5}
-                className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 resize-none"
+                className="w-full px-4 py-2 bg-background border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary resize-none"
               />
-              <p className="text-xs text-slate-500 mt-1">{formData.description.length} characters (min 20)</p>
+              <p className="text-xs text-primary/60 mt-1">{formData.description.length} characters (min 20)</p>
             </div>
 
             {/* Tech Stack */}
             <div>
-              <label className="block text-sm font-medium mb-2">Technology Stack (Press Enter to add)</label>
+              <label className="block text-sm font-medium mb-2 text-primary">Technology Stack (Press Enter to add)</label>
               <input
                 type="text"
                 value={stackInput}
                 onChange={(e) => setStackInput(e.target.value)}
                 onKeyDown={addStack}
                 placeholder="e.g., React, Node.js, PostgreSQL..."
-                className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
+                className="w-full px-4 py-2 bg-background border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary"
               />
               <div className="flex flex-wrap gap-2 mt-3">
                 {formData.stack.map((tech, i) => (
-                  <span key={i} className="px-3 py-1 bg-pink-600 rounded-full text-sm flex items-center gap-2">
+                  <span key={i} className="px-3 py-1 bg-primary text-white rounded-full text-sm flex items-center gap-2">
                     {tech}
                     <button
                       type="button"
                       onClick={() => removeStack(i)}
-                      className="hover:text-red-300"
+                      className="hover:text-secondary"
                     >
                       ✕
                     </button>
@@ -249,23 +249,23 @@ export default function StartupOnboarding() {
 
             {/* Culture Values */}
             <div>
-              <label className="block text-sm font-medium mb-2">Culture Values (Press Enter to add)</label>
+              <label className="block text-sm font-medium mb-2 text-primary">Culture Values (Press Enter to add)</label>
               <input
                 type="text"
                 value={cultureInput}
                 onChange={(e) => setCultureInput(e.target.value)}
                 onKeyDown={addCulture}
                 placeholder="e.g., Innovation, Collaboration, Transparency..."
-                className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
+                className="w-full px-4 py-2 bg-background border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary"
               />
               <div className="flex flex-wrap gap-2 mt-3">
                 {formData.culture_values.map((value, i) => (
-                  <span key={i} className="px-3 py-1 bg-purple-600 rounded-full text-sm flex items-center gap-2">
+                  <span key={i} className="px-3 py-1 bg-secondary text-primary rounded-full text-sm flex items-center gap-2">
                     {value}
                     <button
                       type="button"
                       onClick={() => removeCulture(i)}
-                      className="hover:text-red-300"
+                      className="hover:text-red-600"
                     >
                       ✕
                     </button>
@@ -278,7 +278,7 @@ export default function StartupOnboarding() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 disabled:opacity-50 rounded-lg font-semibold transition-all mt-8"
+              className="w-full py-2 bg-primary text-white hover:bg-opacity-90 disabled:opacity-50 rounded-full font-semibold transition-all mt-8"
             >
               {loading ? 'Creating Startup Profile...' : 'Create Startup Profile'}
             </button>

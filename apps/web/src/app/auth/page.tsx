@@ -25,17 +25,17 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <div className="bg-slate-800/50 border border-purple-500/30 rounded-2xl p-8 backdrop-blur">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+        <div className="bg-white border border-secondary rounded-3xl p-8 shadow-sm">
+          <h1 className="text-3xl font-playfair font-bold mb-2 text-primary">
             Welcome to AgentLink
           </h1>
-          <p className="text-slate-400 mb-8">Sign in to connect with opportunities</p>
+          <p className="text-primary/70 mb-8">Sign in to connect with opportunities</p>
 
           <button
             onClick={handleGoogleLogin}
-            className="w-full py-3 px-4 bg-white text-slate-900 rounded-lg font-semibold hover:bg-slate-100 transition-all flex items-center justify-center gap-2 mb-6"
+            className="w-full py-3 px-4 bg-primary text-white hover:bg-opacity-90 rounded-full font-semibold transition-all flex items-center justify-center gap-2 mb-6"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -60,14 +60,14 @@ export default function AuthPage() {
 
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-600"></div>
+              <div className="w-full border-t border-secondary"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-slate-800/50 text-slate-400">Or</span>
+              <span className="px-2 bg-white text-primary/70">Or</span>
             </div>
           </div>
 
-          <Link href="/" className="block text-center py-2 text-purple-400 hover:text-purple-300 transition">
+          <Link href="/" className="block text-center py-2 text-primary/70 hover:text-primary transition">
             ← Back to Home
           </Link>
         </div>

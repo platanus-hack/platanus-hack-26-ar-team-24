@@ -9,9 +9,13 @@
 }
 
 body {
-  background-color: #0f172a;
-  color: #e2e8f0;
-  font-family: system-ui, -apple-system, sans-serif;
+  background-color: #F9F8F6;
+  color: #1A2F24;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-playfair), serif;
 }
 
 html {

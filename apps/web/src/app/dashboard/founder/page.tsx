@@ -112,20 +112,20 @@ export default function FounderDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     )
   }
 
   if (!hasProfile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="max-w-2xl w-full">
-          <div className="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-6 text-center">
-            <h2 className="text-xl font-bold mb-4">Complete Your Profile First</h2>
-            <p className="text-slate-400 mb-6">Create your startup profile to start matching with talented candidates.</p>
-            <Link href="/onboarding/startup" className="inline-block px-6 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg">
+          <div className="bg-amber-50 border border-amber-300 rounded-3xl p-6 text-center">
+            <h2 className="text-xl font-playfair font-bold mb-4 text-primary">Complete Your Profile First</h2>
+            <p className="text-primary/70 mb-6">Create your startup profile to start matching with talented candidates.</p>
+            <Link href="/onboarding/startup" className="inline-block px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded-full">
               Create Startup Profile
             </Link>
           </div>
@@ -135,23 +135,23 @@ export default function FounderDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
+    <div className="min-h-screen bg-background p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-playfair font-bold mb-2 text-primary">
               {profileData?.name || 'Find Your Team'}
             </h1>
-            <p className="text-slate-400">Use AI-powered matching to discover the perfect team members for your startup</p>
+            <p className="text-primary/70">Use AI-powered matching to discover the perfect team members for your startup</p>
           </div>
           <div className="flex gap-2">
-            <Link href="/dashboard/founder/edit" className="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg text-sm">
+            <Link href="/dashboard/founder/edit" className="px-4 py-2 bg-primary text-white hover:bg-opacity-90 rounded-full text-sm">
               ✎ Edit Profile
             </Link>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
+              className="px-4 py-2 bg-secondary text-primary hover:bg-opacity-80 rounded-full text-sm"
             >
               Logout
             </button>
@@ -159,7 +159,7 @@ export default function FounderDashboard() {
         </div>
 
         {error && (
-          <div className="p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300">
+          <div className="p-4 bg-red-100 border border-red-300 rounded-lg text-red-700">
             {error}
           </div>
         )}
@@ -169,7 +169,7 @@ export default function FounderDashboard() {
           <button
             onClick={handleRunMatching}
             disabled={matchingLoading}
-            className="px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 disabled:opacity-50 rounded-lg font-semibold transition-all text-lg"
+            className="px-8 py-3 bg-primary text-white hover:bg-opacity-90 disabled:opacity-50 rounded-full font-semibold transition-all text-lg"
           >
             {matchingLoading ? '🔍 Buscando matches con agentes IA...' : '🔍 Buscar matches con agentes IA'}
           </button>
@@ -178,7 +178,7 @@ export default function FounderDashboard() {
         {/* Results */}
         {matches.length > 0 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-2xl font-playfair font-bold text-primary">
               {matches.length} Matches Found 🎯
             </h2>
 
@@ -186,21 +186,21 @@ export default function FounderDashboard() {
               {matches.map(match => (
                 <div
                   key={match.id}
-                  className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-6 hover:border-purple-400 transition-all"
+                  className="bg-white border border-secondary rounded-3xl p-6 hover:shadow-md transition-all"
                 >
                   {/* Match Score */}
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h3 className="text-lg font-bold text-slate-100 mb-2">
+                      <h3 className="text-lg font-bold text-primary mb-2">
                         Candidate Match
                       </h3>
                       <div className="flex items-center gap-3">
-                        <div className="relative w-24 h-24 rounded-full border-4 border-purple-500/50 flex items-center justify-center bg-gradient-to-br from-purple-900 to-slate-900">
+                        <div className="relative w-24 h-24 rounded-full border-4 border-primary/30 flex items-center justify-center bg-secondary/30">
                           <div className="text-center">
-                            <div className="text-3xl font-bold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text">
+                            <div className="text-3xl font-bold text-primary">
                               {Math.round(match.match_score * 100)}%
                             </div>
-                            <div className="text-xs text-slate-500">Compatible</div>
+                            <div className="text-xs text-primary/60">Compatible</div>
                           </div>
                         </div>
                       </div>
@@ -210,17 +210,17 @@ export default function FounderDashboard() {
                   {/* Bio */}
                   {match.bio && (
                     <div className="mb-4">
-                      <p className="text-slate-300 leading-relaxed italic">"{match.bio}"</p>
+                      <p className="text-primary/80 leading-relaxed italic">"{match.bio}"</p>
                     </div>
                   )}
 
                   {/* Reasons */}
                   <div className="mb-6 space-y-2">
-                    <h4 className="font-semibold text-slate-300">Why this is a great match:</h4>
+                    <h4 className="font-semibold text-primary">Why this is a great match:</h4>
                     <ul className="space-y-1">
                       {match.reasons.map((reason: string, i: number) => (
-                        <li key={i} className="text-slate-400 text-sm flex items-start gap-2">
-                          <span className="text-purple-400 mt-0.5">✓</span>
+                        <li key={i} className="text-primary/70 text-sm flex items-start gap-2">
+                          <span className="text-primary mt-0.5">✓</span>
                           <span>{reason}</span>
                         </li>
                       ))}
@@ -231,7 +231,7 @@ export default function FounderDashboard() {
                   {match.skills && match.skills.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {match.skills.slice(0, 5).map((skill: string, i: number) => (
-                        <span key={i} className="px-2 py-1 bg-purple-600/40 rounded text-xs">
+                        <span key={i} className="px-2 py-1 bg-secondary text-primary rounded text-xs">
                           {skill}
                         </span>
                       ))}
@@ -246,7 +246,7 @@ export default function FounderDashboard() {
         {!matchingLoading && matches.length === 0 && (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🤖</div>
-            <p className="text-slate-400">Click "Buscar matches" to find candidates that match your startup</p>
+            <p className="text-primary/70">Click "Buscar matches" to find candidates that match your startup</p>
           </div>
         )}
       </div>

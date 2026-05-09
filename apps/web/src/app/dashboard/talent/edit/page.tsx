@@ -165,28 +165,28 @@ export default function EditTalentProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <div className="bg-slate-800/50 border border-purple-500/30 rounded-2xl p-8">
+        <div className="bg-white border border-secondary rounded-3xl p-8 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-playfair font-bold text-primary">
               Edit Your Profile
             </h1>
-            <Link href="/dashboard/talent" className="text-slate-400 hover:text-slate-300">
+            <Link href="/dashboard/talent" className="text-primary/70 hover:text-primary">
               ← Back
             </Link>
           </div>
-          <p className="text-slate-400 mb-8">Update your profile to showcase your latest skills and experience</p>
+          <p className="text-primary/70 mb-8">Update your profile to showcase your latest skills and experience</p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
+            <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-lg text-red-700 text-sm">
               {error}
             </div>
           )}
@@ -194,26 +194,26 @@ export default function EditTalentProfile() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Bio */}
             <div>
-              <label className="block text-sm font-medium mb-2">About You</label>
+              <label className="block text-sm font-medium mb-2 text-primary">About You</label>
               <textarea
                 name="bio"
                 value={formData.bio}
                 onChange={handleChange}
                 placeholder="Describe your professional background, interests, and what you're looking for in a startup..."
                 rows={4}
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none"
+                className="w-full px-4 py-2 bg-background border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary resize-none"
               />
-              <p className="text-xs text-slate-500 mt-1">{formData.bio.length} characters</p>
+              <p className="text-xs text-primary/60 mt-1">{formData.bio.length} characters</p>
             </div>
 
             {/* Experience Years */}
             <div>
-              <label className="block text-sm font-medium mb-2">Years of Experience</label>
+              <label className="block text-sm font-medium mb-2 text-primary">Years of Experience</label>
               <select
                 name="experience_years"
                 value={formData.experience_years}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                className="w-full px-4 py-2 bg-background border border-secondary rounded-lg text-primary focus:outline-none focus:border-primary"
               >
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20].map(year => (
                   <option key={year} value={year}>
@@ -225,23 +225,23 @@ export default function EditTalentProfile() {
 
             {/* Skills */}
             <div>
-              <label className="block text-sm font-medium mb-2">Skills (Press Enter to add)</label>
+              <label className="block text-sm font-medium mb-2 text-primary">Skills (Press Enter to add)</label>
               <input
                 type="text"
                 value={skillInput}
                 onChange={(e) => setSkillInput(e.target.value)}
                 onKeyDown={addSkill}
                 placeholder="e.g., React, Node.js, Python..."
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-4 py-2 bg-background border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary"
               />
               <div className="flex flex-wrap gap-2 mt-3">
                 {formData.skills.map((skill, i) => (
-                  <span key={i} className="px-3 py-1 bg-purple-600 rounded-full text-sm flex items-center gap-2">
+                  <span key={i} className="px-3 py-1 bg-primary text-white rounded-full text-sm flex items-center gap-2">
                     {skill}
                     <button
                       type="button"
                       onClick={() => removeSkill(i)}
-                      className="hover:text-red-300"
+                      className="hover:text-secondary"
                     >
                       ✕
                     </button>
@@ -252,23 +252,23 @@ export default function EditTalentProfile() {
 
             {/* Technologies */}
             <div>
-              <label className="block text-sm font-medium mb-2">Technologies (Press Enter to add)</label>
+              <label className="block text-sm font-medium mb-2 text-primary">Technologies (Press Enter to add)</label>
               <input
                 type="text"
                 value={techInput}
                 onChange={(e) => setTechInput(e.target.value)}
                 onKeyDown={addTechnology}
                 placeholder="e.g., TypeScript, PostgreSQL, AWS..."
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-4 py-2 bg-background border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary"
               />
               <div className="flex flex-wrap gap-2 mt-3">
                 {formData.technologies.map((tech, i) => (
-                  <span key={i} className="px-3 py-1 bg-pink-600 rounded-full text-sm flex items-center gap-2">
+                  <span key={i} className="px-3 py-1 bg-secondary text-primary rounded-full text-sm flex items-center gap-2">
                     {tech}
                     <button
                       type="button"
                       onClick={() => removeTechnology(i)}
-                      className="hover:text-red-300"
+                      className="hover:text-red-600"
                     >
                       ✕
                     </button>
@@ -279,27 +279,27 @@ export default function EditTalentProfile() {
 
             {/* GitHub URL */}
             <div>
-              <label className="block text-sm font-medium mb-2">GitHub URL (Optional)</label>
+              <label className="block text-sm font-medium mb-2 text-primary">GitHub URL (Optional)</label>
               <input
                 type="url"
                 name="github_url"
                 value={formData.github_url}
                 onChange={handleChange}
                 placeholder="https://github.com/username"
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-4 py-2 bg-background border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary"
               />
             </div>
 
             {/* LinkedIn URL */}
             <div>
-              <label className="block text-sm font-medium mb-2">LinkedIn URL (Optional)</label>
+              <label className="block text-sm font-medium mb-2 text-primary">LinkedIn URL (Optional)</label>
               <input
                 type="url"
                 name="linkedin_url"
                 value={formData.linkedin_url}
                 onChange={handleChange}
                 placeholder="https://linkedin.com/in/username"
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-4 py-2 bg-background border border-secondary rounded-lg text-primary placeholder-primary/50 focus:outline-none focus:border-primary"
               />
             </div>
 
@@ -307,7 +307,7 @@ export default function EditTalentProfile() {
             <button
               type="submit"
               disabled={saving}
-              className="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg font-semibold transition-all mt-8"
+              className="w-full py-2 bg-primary text-white hover:bg-opacity-90 disabled:opacity-50 rounded-full font-semibold transition-all mt-8"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>

@@ -9,8 +9,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        dark: '#0f172a',
-        darker: '#020617',
+        background: '#F9F8F6',
+        primary: '#1A2F24',
+        secondary: '#EAE7E0',
+      },
+      fontFamily: {
+        playfair: ['var(--font-playfair)', 'serif'],
+        inter: ['var(--font-inter)', 'sans-serif'],
       },
     },
   },

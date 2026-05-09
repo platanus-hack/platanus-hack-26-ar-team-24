@@ -82,17 +82,17 @@ export default function SelectTypePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-playfair font-bold mb-2 text-primary">
             Welcome to AgentLink
           </h1>
-          <p className="text-slate-400">What's your role?</p>
+          <p className="text-primary/70">What's your role?</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-center">
+          <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-2xl text-red-700 text-center">
             {error}
           </div>
         )}
@@ -102,16 +102,16 @@ export default function SelectTypePage() {
           <button
             onClick={() => handleSelectType('talent')}
             disabled={loading}
-            className="group p-8 bg-slate-800/50 border border-purple-500/30 rounded-xl hover:border-purple-400 transition-all hover:bg-slate-800/70 cursor-pointer disabled:opacity-50"
+            className="group p-8 bg-white border border-secondary rounded-3xl hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
           >
             <div className="text-4xl mb-4">💼</div>
-            <h2 className="text-2xl font-bold mb-3 group-hover:text-purple-300 transition">
+            <h2 className="text-2xl font-playfair font-bold mb-3 group-hover:text-primary/80 transition text-primary">
               I'm a Talent
             </h2>
-            <p className="text-slate-400 group-hover:text-slate-300 transition">
+            <p className="text-primary/70 group-hover:text-primary/80 transition">
               I'm looking to join a startup and grow with a team.
             </p>
-            <div className="mt-6 inline-block px-6 py-2 bg-purple-600 group-hover:bg-purple-500 rounded-lg transition">
+            <div className="mt-6 inline-block px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded-full transition">
               {loading ? 'Loading...' : 'Continue'}
             </div>
           </button>
@@ -120,16 +120,16 @@ export default function SelectTypePage() {
           <button
             onClick={() => handleSelectType('founder')}
             disabled={loading}
-            className="group p-8 bg-slate-800/50 border border-pink-500/30 rounded-xl hover:border-pink-400 transition-all hover:bg-slate-800/70 cursor-pointer disabled:opacity-50"
+            className="group p-8 bg-white border border-secondary rounded-3xl hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
           >
             <div className="text-4xl mb-4">🚀</div>
-            <h2 className="text-2xl font-bold mb-3 group-hover:text-pink-300 transition">
+            <h2 className="text-2xl font-playfair font-bold mb-3 group-hover:text-primary/80 transition text-primary">
               I'm a Founder
             </h2>
-            <p className="text-slate-400 group-hover:text-slate-300 transition">
+            <p className="text-primary/70 group-hover:text-primary/80 transition">
               I'm building a startup and looking for talented team members.
             </p>
-            <div className="mt-6 inline-block px-6 py-2 bg-pink-600 group-hover:bg-pink-500 rounded-lg transition">
+            <div className="mt-6 inline-block px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded-full transition">
               {loading ? 'Loading...' : 'Continue'}
             </div>
           </button>
