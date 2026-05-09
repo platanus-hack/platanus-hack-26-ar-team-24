@@ -1,0 +1,34 @@
+services:
+  openclaw-runtime:
+    build:
+      context: ./openclaw
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      ADMIN_API_TOKEN: ${OPENCLAW_ADMIN_API_TOKEN:-change-me-admin-token}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-change-me-gateway-token}
+      OPENCLAW_PUBLIC_BASE_URL: http://localhost:8080
+      OPENCLAW_GATEWAY_PORT: 18789
+      OPENCLAW_GATEWAY_BIND: loopback
+      OPENCLAW_STATE_DIR: /data/.openclaw
+      OPENCLAW_WORKSPACE_ROOT: /data/workspaces
+      OPENCLAW_DEFAULT_MODEL: ${OPENCLAW_DEFAULT_MODEL:-openai/gpt-4o-mini}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - openclaw-data:/data
+
+  back:
+    build:
+      context: ./back
+    ports:
+      - "4000:4000"
+    depends_on:
+      - openclaw-runtime
+    environment:
+      PORT: 4000
+      OPENCLAW_RUNTIME_URL: http://openclaw-runtime:8080
+      OPENCLAW_ADMIN_API_TOKEN: ${OPENCLAW_ADMIN_API_TOKEN:-change-me-admin-token}
+
+volumes:
+  openclaw-data:

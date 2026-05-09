@@ -22,6 +22,30 @@ AgentLink is an intelligent platform that bridges the gap between talented devel
 - **Alejandro Cafaro** ([@AleCafaro](https://github.com/AleCafaro))
 - **Luca Saboredo** ([@Lucasaboredo](https://github.com/Lucasaboredo))
 
+Have fun! 🚀
+
+## OpenClaw runtime
+
+El repo ahora incluye:
+
+- `openclaw/`: runtime desplegable con OpenClaw + API admin + proxy al gateway
+- `back/`: backend mínimo para consumir el runtime
+
+Flujo esperado:
+
+`frontend local -> back local -> openclaw runtime`
+
+Levantado local:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Servicios:
+
+- runtime OpenClaw: `http://localhost:8080`
+- backend: `http://localhost:4000`
 ---
 
 ## 🚀 Quick Start
