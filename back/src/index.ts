@@ -40,6 +40,16 @@ app.get("/agents", async (_req, res, next) => {
   }
 });
 
+app.get("/agents/:id/files", async (req, res, next) => {
+  try {
+    const agentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const files = await runtimeClient.getFiles(agentId);
+    res.json({ agentId, ...files });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/agents", async (req, res, next) => {
   try {
     const profiledParse = profiledAgentCreateSchema.safeParse(req.body);
