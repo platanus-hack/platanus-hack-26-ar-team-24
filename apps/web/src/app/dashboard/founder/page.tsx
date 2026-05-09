@@ -3,13 +3,37 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowUpRight, LogOut, Sparkles, Search, Cpu, CheckCircle2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  ArrowUpRight,
+  LogOut,
+  Sparkles,
+  Cpu,
+  CheckCircle2,
+  Zap,
+} from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { AmbientBg } from '@/components/ambient-bg'
 import { Wordmark } from '@/components/wordmark'
 import { MacWindow } from '@/components/mac-window'
+import { AgentOrb } from '@/components/agent-orb'
+import { MatchRing } from '@/components/match-ring'
+import { MatchRadar, type RadarDatum } from '@/components/match-radar'
+import { AnimatedNumber } from '@/components/animated-number'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+
+interface MatchItem {
+  id: string
+  candidate_id: string
+  match_score: number
+  reasons: string[]
+  bio: string
+  skills: string[]
+  technologies: string[]
+  experience_years: number
+  radar: RadarDatum[]
+}
 
 export default function FounderDashboard() {
   const router = useRouter()
@@ -17,7 +41,7 @@ export default function FounderDashboard() {
   const [user, setUser] = useState<any>(null)
   const [profileData, setProfileData] = useState<any>(null)
   const [hasProfile, setHasProfile] = useState(true)
-  const [matches, setMatches] = useState<any[]>([])
+  const [matches, setMatches] = useState<MatchItem[]>([])
   const [matchingLoading, setMatchingLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -74,37 +98,52 @@ export default function FounderDashboard() {
         return
       }
 
-      const calculatedMatches = candidates
+      const stack = (profileData.stack || []) as string[]
+
+      const calculatedMatches: MatchItem[] = candidates
         .map((candidate: any) => {
-          const skillOverlap = (profileData.stack || []).filter(
-            (s: string) =>
-              (candidate.skills || []).some((cs: string) => cs.toLowerCase() === s.toLowerCase()) ||
-              (candidate.technologies || []).some(
-                (cs: string) => cs.toLowerCase() === s.toLowerCase()
-              )
+          const candSkills = (candidate.skills || []) as string[]
+          const candTechs = (candidate.technologies || []) as string[]
+
+          const skillOverlap = stack.filter(
+            (s) =>
+              candSkills.some((cs) => cs.toLowerCase() === s.toLowerCase()) ||
+              candTechs.some((cs) => cs.toLowerCase() === s.toLowerCase())
           ).length
 
-          const totalSkills = Math.max((profileData.stack || []).length, 1)
+          const totalSkills = Math.max(stack.length, 1)
           const skillScore = skillOverlap / totalSkills
           const expScore = Math.min(candidate.experience_years / 10, 1)
-          const score = skillScore * 0.6 + expScore * 0.4
+          const techDepth = Math.min((candSkills.length + candTechs.length) / 14, 1)
+          const culture = Math.min((candidate.bio?.length ?? 0) / 240, 1)
+          const score =
+            skillScore * 0.45 + expScore * 0.3 + techDepth * 0.15 + culture * 0.1
+
+          const radar: RadarDatum[] = [
+            { axis: 'Skills', value: Math.round(skillScore * 100) },
+            { axis: 'Exp', value: Math.round(expScore * 100) },
+            { axis: 'Stack', value: Math.round(techDepth * 100) },
+            { axis: 'Cultura', value: Math.round(culture * 100) },
+            { axis: 'Match', value: Math.round(score * 100) },
+          ]
 
           return {
             id: candidate.id,
             candidate_id: candidate.user_id,
             match_score: score,
             reasons: [
-              `${skillOverlap} skills coinciden con tu stack`,
-              `${candidate.experience_years} años de experiencia`,
-              `Skills: ${(candidate.skills || []).slice(0, 3).join(', ')}`,
+              `${skillOverlap} skill${skillOverlap !== 1 ? 's' : ''} coinciden con tu stack`,
+              `${candidate.experience_years} año${candidate.experience_years !== 1 ? 's' : ''} de experiencia`,
+              `${candSkills.length} skills declarados`,
             ],
             bio: candidate.bio,
-            skills: candidate.skills,
-            technologies: candidate.technologies,
+            skills: candSkills,
+            technologies: candTechs,
             experience_years: candidate.experience_years,
+            radar,
           }
         })
-        .sort((a: any, b: any) => b.match_score - a.match_score)
+        .sort((a, b) => b.match_score - a.match_score)
 
       setMatches(calculatedMatches)
     } catch (err: any) {
@@ -123,7 +162,7 @@ export default function FounderDashboard() {
     return (
       <div className="relative flex min-h-screen items-center justify-center">
         <AmbientBg />
-        <div className="size-12 rounded-full bg-foreground animate-pulse-ring" />
+        <AgentOrb variant="pink" size={96} />
       </div>
     )
   }
@@ -133,18 +172,16 @@ export default function FounderDashboard() {
       <div className="relative min-h-screen px-4 py-16">
         <AmbientBg />
         <div className="mx-auto max-w-xl">
-          <MacWindow title="profile required">
-            <div className="p-10 text-center">
-              <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
-                <Sparkles className="size-5" />
-              </div>
+          <MacWindow title="profile required" variant="pink">
+            <div className="flex flex-col items-center p-10 text-center">
+              <AgentOrb variant="pink" size={88} className="mb-6" />
               <h2 className="font-serif text-3xl leading-tight tracking-tight">
-                Definí tu <em className="italic">visión</em> primero.
+                Definí tu <em className="italic text-neon">visión</em> primero.
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
                 Creá el perfil de la startup para empezar a matchear.
               </p>
-              <Button asChild size="lg" variant="default" className="mt-6">
+              <Button asChild size="lg" variant="accent" className="mt-6 glow-accent">
                 <Link href="/onboarding/startup">
                   Crear perfil de startup
                   <ArrowUpRight className="size-4" />
@@ -159,6 +196,14 @@ export default function FounderDashboard() {
 
   void user
 
+  const topMatches = matches.filter((m) => m.match_score >= 0.8).length
+  const avgScore =
+    matches.length > 0
+      ? Math.round(
+          (matches.reduce((acc, m) => acc + m.match_score, 0) / matches.length) * 100
+        )
+      : 0
+
   return (
     <div className="relative min-h-screen">
       <AmbientBg />
@@ -167,8 +212,8 @@ export default function FounderDashboard() {
         <nav className="mx-auto flex max-w-6xl items-center justify-between gap-4 glass rounded-full px-3 py-2 pl-5">
           <Wordmark />
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="font-mono text-[10px]">
-              <span className="mr-1 size-1.5 rounded-full bg-accent" />
+            <Badge variant="pink" className="font-mono text-[10px]">
+              <span className="mr-1 size-1.5 rounded-full bg-traffic-green animate-pulse" />
               founder · {profileData?.name}
             </Badge>
             <Button onClick={handleLogout} size="sm" variant="ghost">
@@ -180,33 +225,122 @@ export default function FounderDashboard() {
       </header>
 
       <main className="px-4 pb-20 pt-12">
-        <div className="mx-auto max-w-6xl space-y-8 animate-fade-in">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mx-auto max-w-6xl space-y-8"
+        >
           {/* Hero */}
-          <div className="flex flex-col gap-2 px-2">
-            <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-              / dashboard · founder
+          <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                / dashboard · founder
+              </div>
+              <h1 className="mt-1 font-serif text-5xl leading-[0.95] tracking-tight sm:text-7xl">
+                Encontrá tu <em className="italic text-neon">team</em>.
+              </h1>
+              <p className="mt-3 max-w-xl text-muted-foreground leading-relaxed">
+                Lanzá los agentes para descubrir candidatos compatibles con{' '}
+                {profileData?.name}.
+              </p>
             </div>
-            <h1 className="font-serif text-5xl leading-[0.95] tracking-tight sm:text-7xl">
-              Encontrá tu <em className="italic text-accent">team</em>.
-            </h1>
-            <p className="mt-2 max-w-xl text-muted-foreground leading-relaxed">
-              Lanzá los agentes para descubrir candidatos compatibles con{' '}
-              {profileData?.name}.
-            </p>
+            <AgentOrb variant="pink" size={96} className="shrink-0" />
+          </div>
+
+          {/* Stats row */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                label: 'Total matches',
+                value: matches.length,
+                suffix: '',
+                variant: 'purple' as const,
+              },
+              {
+                label: 'Top matches (≥80%)',
+                value: topMatches,
+                suffix: '',
+                variant: 'pink' as const,
+              },
+              {
+                label: 'Avg score',
+                value: avgScore,
+                suffix: '%',
+                variant: 'cyan' as const,
+              },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="relative overflow-hidden rounded-2xl border border-white/10 bg-card/60 p-5 backdrop-blur-xl"
+              >
+                <div
+                  aria-hidden
+                  className="absolute -right-12 -top-12 size-32 rounded-full blur-2xl"
+                  style={{
+                    background:
+                      stat.variant === 'purple'
+                        ? 'color-mix(in oklab, var(--accent) 25%, transparent)'
+                        : stat.variant === 'pink'
+                        ? 'color-mix(in oklab, var(--accent-pink) 25%, transparent)'
+                        : 'color-mix(in oklab, var(--accent-cyan) 25%, transparent)',
+                  }}
+                />
+                <div className="relative">
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                    {stat.label}
+                  </div>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="font-serif text-5xl leading-none tabular-nums text-foreground">
+                      <AnimatedNumber value={stat.value} duration={1200} />
+                    </span>
+                    {stat.suffix && (
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {stat.suffix}
+                      </span>
+                    )}
+                    <span className="ml-auto" aria-hidden>
+                      <span
+                        className="block size-2 rounded-full"
+                        style={{
+                          background:
+                            stat.variant === 'purple'
+                              ? 'var(--accent)'
+                              : stat.variant === 'pink'
+                              ? 'var(--accent-pink)'
+                              : 'var(--accent-cyan)',
+                          boxShadow: `0 0 12px ${
+                            stat.variant === 'purple'
+                              ? 'var(--accent)'
+                              : stat.variant === 'pink'
+                              ? 'var(--accent-pink)'
+                              : 'var(--accent-cyan)'
+                          }`,
+                        }}
+                      />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Matching console */}
-          <MacWindow title="matching.console" subtitle="agente listo">
-            <div className="relative grid gap-px bg-border/60 sm:grid-cols-[1fr_1.5fr]">
+          <MacWindow
+            title="matching.console"
+            subtitle={matchingLoading ? 'agente analizando…' : 'agente listo'}
+            variant="purple"
+          >
+            <div className="relative grid gap-px bg-white/5 sm:grid-cols-[1fr_1.5fr]">
               {/* Left: command */}
-              <div className="bg-card/60 p-7 backdrop-blur">
+              <div className="bg-white/[0.02] p-7 backdrop-blur">
                 <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                   / comando
                 </div>
                 <h2 className="mt-3 font-serif text-3xl leading-tight tracking-tight">
                   Ejecutar
                   <br />
-                  <em className="italic text-accent">match engine</em>.
+                  <em className="italic text-neon">match engine</em>.
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   El agente va a comparar tu stack y cultura contra todos los talentos.
@@ -246,7 +380,7 @@ export default function FounderDashboard() {
                     </>
                   ) : (
                     <>
-                      <Search className="size-4" />
+                      <Zap className="size-4" />
                       Correr matching IA
                     </>
                   )}
@@ -254,7 +388,19 @@ export default function FounderDashboard() {
               </div>
 
               {/* Right: status */}
-              <div className="bg-background/40 p-7">
+              <div className="relative bg-black/20 p-7">
+                {matchingLoading && (
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 top-0 h-px animate-scan"
+                    style={{
+                      background:
+                        'linear-gradient(90deg, transparent, var(--accent), var(--accent-pink), transparent)',
+                      boxShadow: '0 0 16px var(--accent)',
+                    }}
+                  />
+                )}
+
                 <div className="flex items-center justify-between">
                   <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                     / output
@@ -270,9 +416,11 @@ export default function FounderDashboard() {
 
                 {matches.length === 0 && !matchingLoading && (
                   <div className="mt-6 flex flex-col items-center justify-center py-10 text-center">
-                    <Cpu className="size-10 text-muted-foreground/40" />
-                    <p className="mt-4 max-w-xs text-sm text-muted-foreground leading-relaxed">
-                      Apretá <span className="font-mono text-foreground">Correr matching</span> para empezar.
+                    <AgentOrb variant="purple" size={64} pulse={false} className="mb-4" />
+                    <p className="max-w-xs text-sm text-muted-foreground leading-relaxed">
+                      Apretá{' '}
+                      <span className="font-mono text-foreground">Correr matching</span>{' '}
+                      para empezar.
                     </p>
                   </div>
                 )}
@@ -282,7 +430,7 @@ export default function FounderDashboard() {
                     {[0, 1, 2].map((i) => (
                       <div
                         key={i}
-                        className="h-14 animate-pulse rounded-xl bg-foreground/[0.04]"
+                        className="h-14 animate-pulse rounded-xl bg-white/[0.04]"
                         style={{ animationDelay: `${i * 150}ms` }}
                       />
                     ))}
@@ -291,32 +439,55 @@ export default function FounderDashboard() {
 
                 {matches.length > 0 && !matchingLoading && (
                   <div className="mt-5 max-h-[320px] space-y-2 overflow-y-auto pr-1">
-                    {matches.slice(0, 5).map((m, i) => (
-                      <div
-                        key={m.id}
-                        className="flex items-center justify-between rounded-xl border border-border/60 bg-card/70 px-4 py-3 backdrop-blur"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="font-mono text-xs text-muted-foreground tabular-nums">
-                            #{(i + 1).toString().padStart(2, '0')}
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium leading-tight">
-                              {m.experience_years} años · {(m.skills || []).slice(0, 2).join(', ')}
+                    <AnimatePresence>
+                      {matches.slice(0, 5).map((m, i) => (
+                        <motion.div
+                          key={m.id}
+                          initial={{ opacity: 0, x: 16 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.08, duration: 0.5 }}
+                          className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 backdrop-blur transition hover:bg-white/[0.07]"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="font-mono text-xs text-muted-foreground tabular-nums">
+                              #{(i + 1).toString().padStart(2, '0')}
                             </div>
-                            <div className="text-xs text-muted-foreground line-clamp-1">
-                              {m.bio?.slice(0, 60)}…
+                            <AgentOrb
+                              variant={
+                                i === 0
+                                  ? 'pink'
+                                  : i === 1
+                                  ? 'purple'
+                                  : i === 2
+                                  ? 'cyan'
+                                  : 'emerald'
+                              }
+                              size={32}
+                              pulse={false}
+                              orbit={false}
+                            />
+                            <div>
+                              <div className="text-sm font-medium leading-tight">
+                                {m.experience_years} años ·{' '}
+                                {(m.skills || []).slice(0, 2).join(', ')}
+                              </div>
+                              <div className="text-xs text-muted-foreground line-clamp-1">
+                                {m.bio?.slice(0, 60)}…
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex items-baseline gap-0.5 font-mono">
-                          <span className="text-lg font-semibold tabular-nums text-foreground">
-                            {Math.round(m.match_score * 100)}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">%</span>
-                        </div>
-                      </div>
-                    ))}
+                          <div className="flex items-baseline gap-0.5 font-mono">
+                            <span className="text-lg font-semibold tabular-nums text-foreground">
+                              <AnimatedNumber
+                                value={Math.round(m.match_score * 100)}
+                                duration={1200}
+                              />
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">%</span>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   </div>
                 )}
               </div>
@@ -324,7 +495,7 @@ export default function FounderDashboard() {
           </MacWindow>
 
           {error && (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -338,19 +509,33 @@ export default function FounderDashboard() {
                     / detalle de candidatos
                   </div>
                   <h2 className="mt-2 font-serif text-4xl leading-tight tracking-tight">
-                    {matches.length} <em className="italic text-accent">match{matches.length !== 1 && 'es'}</em>
+                    {matches.length}{' '}
+                    <em className="italic text-neon">
+                      {matches.length === 1 ? 'match' : 'matches'}
+                    </em>
                   </h2>
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                {matches.map((match) => {
+              <div className="grid gap-4 lg:grid-cols-2">
+                {matches.map((match, idx) => {
                   const score = Math.round(match.match_score * 100)
                   const isTop = score >= 80
+                  const orbVariant: 'pink' | 'purple' | 'cyan' | 'emerald' =
+                    idx === 0
+                      ? 'pink'
+                      : idx === 1
+                      ? 'purple'
+                      : idx === 2
+                      ? 'cyan'
+                      : 'emerald'
                   return (
-                    <div
+                    <motion.div
                       key={match.id}
-                      className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:shadow-[0_24px_60px_-24px_rgba(0,0,0,0.18)]"
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.06, duration: 0.5 }}
+                      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-card/60 p-6 backdrop-blur-xl transition-all hover:-translate-y-1 hover:border-white/20 hover:shadow-[0_24px_60px_-20px_color-mix(in_oklab,var(--accent-pink)_25%,transparent)]"
                     >
                       {isTop && (
                         <div className="absolute right-4 top-4">
@@ -361,24 +546,29 @@ export default function FounderDashboard() {
                         </div>
                       )}
                       <div className="flex items-start gap-4">
-                        <div className="relative">
-                          <div className="flex size-20 items-center justify-center rounded-2xl bg-foreground text-background">
-                            <div className="text-center">
-                              <div className="font-serif text-2xl leading-none text-accent">
-                                {score}
-                              </div>
-                              <div className="font-mono text-[8px] uppercase tracking-wider text-background/50">
-                                match
-                              </div>
-                            </div>
-                          </div>
+                        <div className="shrink-0">
+                          <MatchRing
+                            score={score}
+                            size={108}
+                            delay={idx * 0.06}
+                            variant={isTop ? 'purple-pink' : 'cyan-emerald'}
+                          />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h3 className="font-serif text-xl leading-tight tracking-tight">
-                            Candidato compatible
-                          </h3>
-                          <p className="mt-1 text-xs font-mono uppercase tracking-wider text-muted-foreground">
-                            {match.experience_years} años · {(match.skills || []).length} skills
+                          <div className="flex items-center gap-2">
+                            <AgentOrb
+                              variant={orbVariant}
+                              size={32}
+                              pulse={false}
+                              orbit={false}
+                            />
+                            <h3 className="font-serif text-xl leading-tight tracking-tight">
+                              Candidato compatible
+                            </h3>
+                          </div>
+                          <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                            {match.experience_years} años · {match.skills.length} skills ·{' '}
+                            {match.technologies.length} tech
                           </p>
                           {match.bio && (
                             <p className="mt-3 text-sm italic leading-relaxed text-muted-foreground line-clamp-2">
@@ -388,6 +578,12 @@ export default function FounderDashboard() {
                         </div>
                       </div>
 
+                      {/* Radar */}
+                      <div className="mt-4 rounded-xl border border-white/5 bg-black/20 p-2">
+                        <MatchRadar data={match.radar} height={180} />
+                      </div>
+
+                      {/* Reasons */}
                       <div className="mt-5 space-y-2">
                         <div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                           ¿por qué matchea?
@@ -396,7 +592,7 @@ export default function FounderDashboard() {
                           {match.reasons.map((reason: string, i: number) => (
                             <li
                               key={i}
-                              className="flex items-start gap-2 text-sm text-foreground/80"
+                              className="flex items-start gap-2 text-sm text-foreground/85"
                             >
                               <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-accent" />
                               <span>{reason}</span>
@@ -405,7 +601,7 @@ export default function FounderDashboard() {
                         </ul>
                       </div>
 
-                      {match.skills && match.skills.length > 0 && (
+                      {match.skills.length > 0 && (
                         <div className="mt-5 flex flex-wrap gap-1.5">
                           {match.skills.slice(0, 5).map((skill: string, i: number) => (
                             <Badge key={i} variant="soft" className="rounded-md">
@@ -414,13 +610,13 @@ export default function FounderDashboard() {
                           ))}
                         </div>
                       )}
-                    </div>
+                    </motion.div>
                   )
                 })}
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
       </main>
     </div>
   )
