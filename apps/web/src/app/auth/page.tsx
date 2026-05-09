@@ -10,6 +10,9 @@ export default function AuthPage() {
         provider: 'google',
         options: {
           redirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`,
+          queryParams: {
+            prompt: 'login',
+          },
         },
       })
 
