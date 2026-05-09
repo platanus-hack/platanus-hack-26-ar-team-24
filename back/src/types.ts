@@ -48,7 +48,8 @@ export const profiledAgentCreateSchema = z.object({
     .string()
     .min(2)
     .max(50)
-    .regex(/^[a-z0-9][a-z0-9-_]*$/),
+    .regex(/^[a-z0-9][a-z0-9-_]*$/)
+    .optional(),
   user: userProfileSchema
 });
 
