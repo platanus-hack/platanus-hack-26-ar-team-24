@@ -46,6 +46,7 @@ Servicios:
 
 - runtime OpenClaw: `http://localhost:8080`
 - backend: `http://localhost:4000`
+
 ---
 
 ## 🚀 Quick Start
@@ -353,3 +354,19 @@ TBD - Platanus Hack 26 Project
 5. 🚀 Deploy when ready
 
 **Everything is ready for frontend development!**
+
+## Deploy en Railway
+
+Producción se despliega como 2 servicios separados desde este mismo repo:
+
+- `openclaw/`
+- `back/`
+
+No uses `docker-compose.yml` en Railway. Ese compose es solo para desarrollo local.
+
+Guía rápida:
+
+1. Crear un servicio con `Root Directory = openclaw`
+2. Crear otro servicio con `Root Directory = back`
+3. Montar un volumen en `/data` solo en `openclaw`
+4. Configurar `OPENCLAW_RUNTIME_URL` de `back` apuntando a la URL pública de `openclaw`

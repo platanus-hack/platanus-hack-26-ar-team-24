@@ -32,6 +32,11 @@ OPENCLAW_DEFAULT_MODEL=openai/gpt-4o-mini
 OPENAI_API_KEY=<si-usan-openai>
 ```
 
+Notas:
+
+- `OPENCLAW_ADMIN_API_TOKEN` también funciona como alias, pero `ADMIN_API_TOKEN` es el nombre canónico del runtime.
+- crear este servicio primero, porque `back` depende de su URL final.
+
 ### `back`
 
 - raíz del servicio: `back/`
@@ -45,6 +50,26 @@ PORT=4000
 OPENCLAW_RUNTIME_URL=https://tu-servicio-openclaw.up.railway.app
 OPENCLAW_ADMIN_API_TOKEN=<mismo-token-interno>
 ```
+
+## Configuración en Railway
+
+Crear 2 servicios separados desde el mismo repo:
+
+1. Servicio `openclaw-runtime`
+2. Servicio `back`
+
+En ambos:
+
+- usar `Deploy from GitHub Repo`
+- apuntar al mismo repo
+- configurar `Root Directory` distinto por servicio
+
+Valores:
+
+- `openclaw-runtime` -> `Root Directory: openclaw`
+- `back` -> `Root Directory: back`
+
+No usar `docker-compose.yml` para producción en Railway. Ese archivo queda solo para desarrollo local.
 
 ## Flujo de operación
 

@@ -6,7 +6,7 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends dumb-init \
   && rm -rf /var/lib/apt/lists/*
 
-COPY package.json package-lock.json* ./
+COPY package.json ./
 RUN npm install -g openclaw@latest \
   && npm install
 
