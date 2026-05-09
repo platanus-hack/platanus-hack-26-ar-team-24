@@ -97,12 +97,17 @@ export default function TalentDashboard() {
             </h1>
             <p className="text-slate-400">Your profile is live and founders can now see you in AI-powered matching</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
-          >
-            Logout
-          </button>
+          <div className="flex gap-2">
+            <Link href="/dashboard/talent/edit" className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm">
+              ✎ Edit Profile
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Profile Summary */}
