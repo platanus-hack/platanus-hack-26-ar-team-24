@@ -242,14 +242,9 @@ server.ts     → Server startup
 
 ## 🔒 CREDENCIALES GUARDADAS
 
-```
-Archivo: services/api/.env
+**Archivo:** `services/api/.env` (NO TRACKEAR - gitignored)
 
-✅ SUPABASE_URL = https://gdnidbojzllvnuacbikk.supabase.co
-✅ JWT_SECRET = platanus_hack_secret_key_change_in_production_2024
-```
-
-**Nota:** No se pushearán a Git (está en .gitignore)
+**Nota:** Las credenciales de Supabase se guardan en `.env`, no en Git. Ver `.env.example` para template.
 
 ---
 
