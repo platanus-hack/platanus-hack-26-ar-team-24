@@ -102,16 +102,16 @@ export default function SelectTypePage() {
           <button
             onClick={() => handleSelectType('talent')}
             disabled={loading}
-            className="group p-8 bg-white border border-secondary rounded-3xl hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
+            className="group p-8 bg-white border border-secondary rounded-3xl hover:shadow-md transition-all cursor-pointer disabled:opacity-50 flex flex-col items-center text-center"
           >
-            <div className="h-16 w-16 bg-primary/10 rounded-full mb-4"></div>
+            <div className="h-16 w-16 bg-primary/5 border border-primary/20 rounded-full mb-6 flex items-center justify-center"></div>
             <h2 className="text-2xl font-playfair font-bold mb-3 group-hover:text-primary/80 transition text-primary">
               I'm a Talent
             </h2>
-            <p className="text-primary/70 group-hover:text-primary/80 transition">
+            <p className="text-primary/70 group-hover:text-primary/80 transition mb-6 flex-grow">
               I'm looking to join a startup and grow with a team.
             </p>
-            <div className="mt-6 inline-block px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded-full transition">
+            <div className="px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded-full transition">
               {loading ? 'Loading...' : 'Continue'}
             </div>
           </button>
@@ -120,16 +120,16 @@ export default function SelectTypePage() {
           <button
             onClick={() => handleSelectType('founder')}
             disabled={loading}
-            className="group p-8 bg-white border border-secondary rounded-3xl hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
+            className="group p-8 bg-white border border-secondary rounded-3xl hover:shadow-md transition-all cursor-pointer disabled:opacity-50 flex flex-col items-center text-center"
           >
-            <div className="h-16 w-16 bg-primary/10 rounded-full mb-4"></div>
+            <div className="h-16 w-16 bg-primary/5 border border-primary/20 rounded-full mb-6 flex items-center justify-center"></div>
             <h2 className="text-2xl font-playfair font-bold mb-3 group-hover:text-primary/80 transition text-primary">
               I'm a Founder
             </h2>
-            <p className="text-primary/70 group-hover:text-primary/80 transition">
+            <p className="text-primary/70 group-hover:text-primary/80 transition mb-6 flex-grow">
               I'm building a startup and looking for talented team members.
             </p>
-            <div className="mt-6 inline-block px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded-full transition">
+            <div className="px-6 py-2 bg-primary text-white hover:bg-opacity-90 rounded-full transition">
               {loading ? 'Loading...' : 'Continue'}
             </div>
           </button>
