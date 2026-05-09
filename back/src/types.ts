@@ -43,6 +43,15 @@ export const conversationConfigSchema = z.object({
   thinking: z.enum(["off", "minimal", "low", "medium", "high"]).default("minimal")
 });
 
+export const matchmakingRequestSchema = z.object({
+  purpose: z.string().min(1),
+  turnsPerAgent: z.coerce.number().int().min(1).max(5).default(2),
+  maxRounds: z.coerce.number().int().min(1).max(10).default(3),
+  thinking: z.enum(["off", "minimal", "low", "medium", "high"]).default("minimal"),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+  minScore: z.number().min(0).max(1).default(0)
+});
+
 export const profiledAgentCreateSchema = z.object({
   id: z
     .string()
@@ -57,6 +66,7 @@ export type UserProfile = z.infer<typeof userProfileSchema>;
 export type GraderProfile = z.infer<typeof graderProfileSchema>;
 export type JudgeDecision = z.infer<typeof judgeDecisionSchema>;
 export type ConversationConfig = z.infer<typeof conversationConfigSchema>;
+export type MatchmakingRequest = z.infer<typeof matchmakingRequestSchema>;
 export type ProfiledAgentCreate = z.infer<typeof profiledAgentCreateSchema>;
 
 export type TranscriptMessage = {

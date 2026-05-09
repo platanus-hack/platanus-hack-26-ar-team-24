@@ -3,6 +3,7 @@ import express, { type NextFunction, type Request, type Response } from "express
 import { z } from "zod";
 import {
   conversationConfigSchema,
+  matchmakingRequestSchema,
   profiledAgentCreateSchema
 } from "./types.js";
 import { RuntimeClient } from "./runtime-client.js";
@@ -92,6 +93,17 @@ app.post("/conversations/run", async (req, res, next) => {
   try {
     const input = conversationConfigSchema.parse(req.body);
     const result = await compatibilityService.runConversation(input);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/agents/:id/matchmake", async (req, res, next) => {
+  try {
+    const agentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const input = matchmakingRequestSchema.parse(req.body);
+    const result = await compatibilityService.runPurposeMatchmaking(agentId, input);
     res.json(result);
   } catch (error) {
     next(error);
