@@ -19,7 +19,7 @@ const envSchema = z.object({
   JUDGE_AGENT_ID: z.string().min(1).default("judge"),
   GRADER_AGENT_ID: z.string().min(1).default("grader"),
   GITHUB_TOKEN: z.string().optional(),
-  ALLOWED_ORIGINS: z.string().default("http://localhost:3001,http://127.0.0.1:3001")
+  ALLOWED_ORIGINS: z.string().default("http://localhost:3001,http://127.0.0.1:3001,https://knewa-human.vercel.app")
 });
 
 const env = envSchema.parse(process.env);
