@@ -1,6 +1,7 @@
 'use client'
 
 import FlowNav from '@/components/layout/FlowNav'
+import AppHeader from '@/components/layout/AppHeader'
 import { Bot, ChevronRight } from 'lucide-react'
 
 const TRANSCRIPT = [
@@ -14,18 +15,15 @@ const TRANSCRIPT = [
 export default function ArenaPage() {
   return (
     <div className="min-h-screen bg-ink-950 text-white">
-      <header className="border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-md bg-white text-black flex items-center justify-center font-serif text-sm font-bold">A</div>
-            <span className="text-sm font-medium">AgentLink</span>
-          </div>
+      <AppHeader
+        maxWidth="max-w-7xl"
+        rightSlot={
           <div className="flex items-center gap-2 text-xs text-zinc-500 font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             simulation · live
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-10">
