@@ -11,36 +11,41 @@ export default function Home() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
 
-      if (session) {
-        console.log('✅ Session found for user:', session.user.id)
+        if (session) {
+          console.log('✅ Session found for user:', session.user.id)
 
-        // Check user_type in database (persists across logout/login)
-        const { data: user, error } = await supabase
-          .from('users')
-          .select('user_type')
-          .eq('id', session.user.id)
-          .single()
+          // Check user_type in database (persists across logout/login)
+          const { data: user, error } = await supabase
+            .from('users')
+            .select('user_type')
+            .eq('id', session.user.id)
+            .single()
 
-        console.log('Database user lookup:', { user, error })
+          console.log('Database user lookup:', { user, error })
 
-        if (user?.user_type === 'talent') {
-          console.log('Redirecting to talent dashboard')
-          router.push('/dashboard/talent')
-          return
-        } else if (user?.user_type === 'founder') {
-          console.log('Redirecting to founder dashboard')
-          router.push('/dashboard/founder')
-          return
-        } else {
-          console.log('No user_type found, going to select-type')
-          router.push('/onboarding/select-type')
-          return
+          if (user?.user_type === 'talent') {
+            console.log('Redirecting to talent dashboard')
+            router.push('/dashboard/talent')
+            return
+          } else if (user?.user_type === 'founder') {
+            console.log('Redirecting to founder dashboard')
+            router.push('/dashboard/founder')
+            return
+          } else {
+            console.log('No user_type found, going to select-type')
+            router.push('/onboarding/select-type')
+            return
+          }
         }
-      }
 
-      setLoading(false)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error checking session:', error)
+        setLoading(false)
+      }
     }
 
     checkSession()
