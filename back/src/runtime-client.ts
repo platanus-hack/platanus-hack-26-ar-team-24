@@ -82,6 +82,19 @@ export class RuntimeClient {
     return body;
   }
 
+  async getFiles(agentId: string) {
+    const { response, body } = await this.call(`/admin/agents/${agentId}/files`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to read profile files for \`${agentId}\`: ${JSON.stringify(body)}`);
+    }
+
+    return body as {
+      workspace: string;
+      files: Partial<Record<"IDENTITY.md" | "SOUL.md" | "USER.md" | "AGENTS.md", string>>;
+    };
+  }
+
   private extractAssistantText(body: RuntimeMessageResult): string {
     const payloads = body.result?.result?.payloads ?? [];
     const payloadText = payloads

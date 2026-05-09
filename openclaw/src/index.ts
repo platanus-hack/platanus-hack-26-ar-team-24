@@ -92,6 +92,16 @@ app.post("/admin/agents/:id/files", requireAdminToken, async (req, res, next) =>
   }
 });
 
+app.get("/admin/agents/:id/files", requireAdminToken, async (req, res, next) => {
+  try {
+    const agentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const result = await configStore.getAgentFiles(agentId);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/admin/config/validate", requireAdminToken, async (_req, res, next) => {
   try {
     await configStore.validateConfig();

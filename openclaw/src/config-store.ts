@@ -44,6 +44,7 @@ export type SendAgentMessageInput = z.infer<typeof sendAgentMessageSchema>;
 export type UpdateAgentFilesInput = z.infer<typeof updateAgentFilesSchema>;
 
 type CliAgentRecord = Record<string, unknown>;
+const profileFileNames = ["IDENTITY.md", "SOUL.md", "USER.md", "AGENTS.md"] as const;
 
 export class ConfigStore {
   readonly stateDir = env.OPENCLAW_STATE_DIR;
@@ -227,6 +228,47 @@ export class ConfigStore {
     return {
       workspace: agent.workspace,
       files: Object.keys(input.files).map((filename) => path.basename(filename))
+    };
+  }
+
+  async getAgentFiles(agentId: string): Promise<{
+    workspace: string;
+    files: Partial<Record<(typeof profileFileNames)[number], string>>;
+  }> {
+    const agents = await this.getAgentsFromCli();
+    const agent = agents.list.find((entry) => entry.id === agentId);
+
+    if (!agent) {
+      throw new Error(`Unknown agent id \`${agentId}\`.`);
+    }
+
+    const files = await Promise.all(
+      profileFileNames.map(async (filename) => {
+        const filePath = path.join(agent.workspace, filename);
+
+        try {
+          const content = await readFile(filePath, "utf8");
+          return [filename, content] as const;
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    const existingFiles: Partial<Record<(typeof profileFileNames)[number], string>> = {};
+
+    for (const entry of files) {
+      if (!entry) {
+        continue;
+      }
+
+      const [filename, content] = entry;
+      existingFiles[filename] = content;
+    }
+
+    return {
+      workspace: agent.workspace,
+      files: existingFiles
     };
   }
 
