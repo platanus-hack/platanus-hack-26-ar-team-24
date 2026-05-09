@@ -131,6 +131,56 @@
       0 16px 40px -16px rgba(0, 0, 0, 0.12);
   }
 
+  /* VisionOS Liquid Glass Panel — revolutionary dark aesthetic */
+  .glass-panel {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.04) 50%,
+      rgba(255, 255, 255, 0.02) 100%
+    );
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.1),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.15),
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-panel-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-panel-hover:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0.03) 100%
+    );
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.15),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.1),
+      0 12px 40px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Terminal glass for logs */
+  .glass-terminal {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 4px 24px rgba(0, 0, 0, 0.4);
+  }
+
   /* Mesh gradient background — fachera */
   .mesh {
     background-image:
