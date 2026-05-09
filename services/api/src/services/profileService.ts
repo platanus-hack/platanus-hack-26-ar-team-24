@@ -194,4 +194,41 @@ export const profileService = {
 
     return data;
   },
+
+  // Get all candidates
+  async getAllCandidates(): Promise<any> {
+    const { data, error } = await supabaseClient
+      .from('candidate_profiles')
+      .select('*');
+
+    if (error) {
+      throw new HttpError('Failed to fetch candidates', 500);
+    }
+
+    return { data: data || [], error };
+  },
+
+  // Get all startups
+  async getAllStartups(): Promise<any> {
+    const { data, error } = await supabaseClient
+      .from('startup_profiles')
+      .select('*');
+
+    if (error) {
+      throw new HttpError('Failed to fetch startups', 500);
+    }
+
+    return { data: data || [], error };
+  },
+
+  // Get startup profile by user ID
+  async getStartupProfile(userId: string): Promise<any> {
+    const { data, error } = await supabaseClient
+      .from('startup_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    return { data, error };
+  },
 };

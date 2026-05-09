@@ -1,205 +1,65 @@
-import { supabaseClient, supabaseAdmin } from '../config/supabase.js';
-import { Match, HttpError, CompatibilityScore } from '../types/index.js';
-
 export const matchingService = {
-  async calculateCompatibility(
-    candidateId: string,
-    startupId: string
-  ): Promise<CompatibilityScore> {
-    // Get candidate profile
-    const { data: candidate } = await supabaseClient
-      .from('candidate_profiles')
-      .select('*')
-      .eq('id', candidateId)
-      .single();
+  calculateMatchScore(startup: any, candidate: any): number {
+    let score = 0;
 
-    // Get startup profile
-    const { data: startup } = await supabaseClient
-      .from('startup_profiles')
-      .select('*')
-      .eq('id', startupId)
-      .single();
+    // Skill overlap (40%)
+    const candidateSkills = (candidate.skills || []).map((s: string) => s.toLowerCase());
+    const startupStack = (startup.stack || []).map((s: string) => s.toLowerCase());
 
-    if (!candidate || !startup) {
-      throw new HttpError('Candidate or startup not found', 404);
-    }
-
-    // Mock compatibility score for MVP
-    // In production, this would call actual AI
-    const candidateSkills = new Set(candidate.skills || []);
-    const startupStack = new Set(startup.stack || []);
-
-    // Calculate skill overlap
-    const commonSkills = Array.from(candidateSkills).filter((skill) =>
-      Array.from(startupStack).some(
-        (tech) =>
-          (tech as string).toLowerCase().includes((skill as string).toLowerCase()) ||
-          (skill as string).toLowerCase().includes((tech as string).toLowerCase())
-      )
+    const commonSkills = candidateSkills.filter((skill: string) =>
+      startupStack.some((tech: string) => tech.includes(skill) || skill.includes(tech))
     );
 
-    const skillMatch = candidateSkills.size > 0
-      ? (commonSkills.length / candidateSkills.size) * 0.6
-      : 0.3;
+    const skillScore = commonSkills.length > 0 ? Math.min(1, (commonSkills.length / 3) * 0.7) : 0;
+    score += skillScore * 0.4;
 
-    // Calculate experience match
-    const experienceMatch = Math.min(
-      candidate.experience_years / 5,
-      1
-    ) * 0.2;
+    // Experience match (30%)
+    const experienceMatch = candidate.experience_years > 0 ? Math.min(1, candidate.experience_years / 10) : 0.3;
+    score += experienceMatch * 0.3;
 
-    // Calculate technology match
-    const techMatch = Math.min(
-      (candidate.technologies?.length || 0) / (startup.stack.length || 1),
-      1
-    ) * 0.2;
-
-    const matchScore = Math.min(
-      skillMatch + experienceMatch + techMatch + 0.15,
-      1
+    // Tech stack overlap (30%)
+    const candidateTechs = (candidate.technologies || []).map((t: string) => t.toLowerCase());
+    const commonTechs = candidateTechs.filter((tech: string) =>
+      startupStack.some((s: string) => s.toLowerCase().includes(tech) || tech.includes(s.toLowerCase()))
     );
 
-    // Generate reasons
-    const reasons: string[] = [];
+    const techScore = commonTechs.length > 0 ? Math.min(1, (commonTechs.length / 3) * 0.7) : 0;
+    score += techScore * 0.3;
+
+    const finalScore = Math.min(1, Math.max(0.3, score));
+    return parseFloat(finalScore.toFixed(2));
+  },
+
+  generateSummary(candidate: any, startup: any, score: number): string {
+    const summaries = [
+      `${candidate.username} brings ${score * 100 | 0}% compatibility with ${startup.name}'s needs.`,
+      `Excellent match! ${candidate.username} is a great fit for ${startup.name} (${score * 100 | 0}%).`,
+      `${candidate.username} demonstrates ${score * 100 | 0}% alignment with your needs.`,
+    ];
+    return summaries[Math.floor(Math.random() * summaries.length)];
+  },
+
+  generateReasons(candidate: any, startup: any): string[] {
+    const reasons = [];
+    const candidateSkills = (candidate.skills || []).map((s: string) => s.toLowerCase());
+    const startupStack = (startup.stack || []).map((s: string) => s.toLowerCase());
+
+    const commonSkills = candidateSkills.filter((skill: string) =>
+      startupStack.some((tech: string) => tech.includes(skill) || skill.includes(tech))
+    );
+
     if (commonSkills.length > 0) {
-      reasons.push(
-        `${commonSkills.length} matching skills: ${commonSkills.join(', ')}`
-      );
+      reasons.push(`Matching skills: ${commonSkills.slice(0, 2).join(', ')}`);
     }
+
     if (candidate.experience_years >= 3) {
-      reasons.push('Strong professional experience');
-    }
-    if ((candidate.technologies?.length || 0) > 0) {
-      reasons.push('Diverse technical background');
+      reasons.push(`${candidate.experience_years}+ years of experience`);
     }
 
-    return {
-      match_score: Math.round(matchScore * 100) / 100,
-      summary: `Strong match between ${candidate.id} and startup. Compatible technical background and experience level.`,
-      reasons,
-      metadata: {
-        skillMatch,
-        experienceMatch,
-        techMatch,
-      },
-    };
-  },
-
-  async createMatch(
-    candidateId: string,
-    startupId: string
-  ): Promise<Match> {
-    // Calculate compatibility first
-    const compatibility = await this.calculateCompatibility(
-      candidateId,
-      startupId
-    );
-
-    // Save match
-    const { data, error } = await supabaseAdmin
-      .from('matches')
-      .insert({
-        candidate_id: candidateId,
-        startup_id: startupId,
-        match_score: compatibility.match_score,
-        summary: compatibility.summary,
-        reasons: compatibility.reasons,
-        status: 'pending',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (error || !data) {
-      throw new HttpError('Failed to create match', 500);
+    if (reasons.length === 0) {
+      reasons.push(`Good technical alignment`);
     }
 
-    return data;
-  },
-
-  async getMatchesForCandidate(candidateId: string): Promise<Match[]> {
-    const { data, error } = await supabaseClient
-      .from('matches')
-      .select('*')
-      .eq('candidate_id', candidateId)
-      .order('match_score', { ascending: false });
-
-    if (error) {
-      throw new HttpError('Failed to fetch matches', 500);
-    }
-
-    return data || [];
-  },
-
-  async getMatchesForStartup(startupId: string): Promise<Match[]> {
-    const { data, error } = await supabaseClient
-      .from('matches')
-      .select('*')
-      .eq('startup_id', startupId)
-      .order('match_score', { ascending: false });
-
-    if (error) {
-      throw new HttpError('Failed to fetch matches', 500);
-    }
-
-    return data || [];
-  },
-
-  async updateMatchStatus(
-    matchId: string,
-    status: 'accepted' | 'rejected'
-  ): Promise<Match> {
-    const { data, error } = await supabaseAdmin
-      .from('matches')
-      .update({
-        status,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', matchId)
-      .select()
-      .single();
-
-    if (error || !data) {
-      throw new HttpError('Failed to update match', 500);
-    }
-
-    return data;
-  },
-
-  async runMatchingProcess(startupId: string): Promise<Match[]> {
-    // Get startup profile
-    const { data: startup } = await supabaseClient
-      .from('startup_profiles')
-      .select('*')
-      .eq('id', startupId)
-      .single();
-
-    if (!startup) {
-      throw new HttpError('Startup not found', 404);
-    }
-
-    // Get all candidates
-    const { data: candidates } = await supabaseClient
-      .from('candidate_profiles')
-      .select('id');
-
-    if (!candidates || candidates.length === 0) {
-      return [];
-    }
-
-    // Calculate matches for all candidates
-    const matches: Match[] = [];
-    for (const candidate of candidates) {
-      try {
-        const match = await this.createMatch(candidate.id, startupId);
-        matches.push(match);
-      } catch (error) {
-        // Skip if match already exists
-        console.log(`Match already exists for candidate ${candidate.id}`);
-      }
-    }
-
-    return matches.sort((a, b) => b.match_score - a.match_score);
+    return reasons;
   },
 };
