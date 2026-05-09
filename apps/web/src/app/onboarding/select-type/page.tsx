@@ -14,20 +14,50 @@ export default function SelectTypePage() {
     setError('')
 
     try {
-      console.log('Updating user type to:', userType)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
 
-      const { data, error: updateError } = await supabase.auth.updateUser({
-        data: { user_type: userType },
-      })
+      console.log('Creating/updating user with type:', userType)
 
-      console.log('Update result:', { data, updateError })
+      const username = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'user'
 
-      if (updateError) {
-        console.error('Update error:', updateError)
-        throw new Error(updateError.message || 'Failed to update user type')
+      // Check if user exists in users table
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (!existingUser) {
+        // Create user record with user_type
+        const { error: createError } = await supabase
+          .from('users')
+          .insert([{
+            id: user.id,
+            email: user.email,
+            username: username,
+            user_type: userType,
+            password_hash: 'oauth_user',
+          }])
+
+        if (createError) {
+          console.error('User create error:', createError)
+          throw createError
+        }
+      } else {
+        // Update existing user with user_type
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ user_type: userType })
+          .eq('id', user.id)
+
+        if (updateError) {
+          console.error('User update error:', updateError)
+          throw updateError
+        }
       }
 
-      console.log('User type updated successfully, redirecting...')
+      console.log('User type saved successfully, redirecting...')
 
       if (userType === 'talent') {
         window.location.href = '/onboarding/candidate'

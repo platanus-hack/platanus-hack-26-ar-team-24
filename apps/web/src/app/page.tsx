@@ -14,11 +14,17 @@ export default function Home() {
       const { data: { session } } = await supabase.auth.getSession()
 
       if (session) {
-        const userType = session.user.user_metadata?.user_type
-        if (userType === 'talent') {
+        // Check user_type in database (persists across logout/login)
+        const { data: user } = await supabase
+          .from('users')
+          .select('user_type')
+          .eq('id', session.user.id)
+          .single()
+
+        if (user?.user_type === 'talent') {
           router.push('/dashboard/talent')
           return
-        } else if (userType === 'founder') {
+        } else if (user?.user_type === 'founder') {
           router.push('/dashboard/founder')
           return
         } else {
