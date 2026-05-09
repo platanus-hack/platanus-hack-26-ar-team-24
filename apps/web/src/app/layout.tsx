@@ -1,20 +1,29 @@
 import type { Metadata } from 'next'
+import { Inter, Lora } from 'next/font/google'
 import '@/styles/globals.css'
 
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+const lora = Lora({
+  subsets: ['latin'],
+  variable: '--font-lora',
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
-  title: 'AgentLink - AI-Powered Startup Team Matching',
-  description: 'Connect with compatible talent and founders through intelligent AI matching',
+  title: 'AgentLink — IA para reconexión humana',
+  description: 'Tu IA clona tu personalidad para encontrar conexiones genuinas.',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <body className="bg-slate-900 text-slate-100">
-        <main>{children}</main>
+    <html lang="es" className={`${inter.variable} ${lora.variable}`}>
+      <body className="bg-ink-950 text-white font-sans antialiased">
+        {children}
       </body>
     </html>
   )

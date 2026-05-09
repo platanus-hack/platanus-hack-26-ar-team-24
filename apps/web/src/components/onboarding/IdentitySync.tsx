@@ -1,332 +1,428 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Github, Music, Briefcase, CheckCircle2, Loader2, Clock, Zap } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback, memo } from 'react'
+import {
+  GitBranch,
+  Music,
+  Briefcase,
+  CheckCircle2,
+  Loader2,
+  Clock,
+  ArrowRight,
+  Zap,
+} from 'lucide-react'
 
-type ConnectionStatus = 'pending' | 'syncing' | 'connected'
+type Status = 'pending' | 'syncing' | 'connected'
 
 interface Platform {
   id: string
   name: string
-  icon: React.ReactNode
-  status: ConnectionStatus
-  color: string
-  glowColor: string
   description: string
+  status: Status
+  accent: string
+  accentRgb: string
+  icon: React.ReactNode
 }
 
-const INITIAL_PLATFORMS: Platform[] = [
+const PLATFORM_DEFS: Omit<Platform, 'status'>[] = [
   {
     id: 'github',
     name: 'GitHub',
-    icon: <Github size={28} />,
-    status: 'syncing',
-    color: 'from-slate-400 to-slate-200',
-    glowColor: 'rgba(148,163,184,0.25)',
     description: 'Repositorios & actividad de código',
+    accent: '#a78bfa',
+    accentRgb: '167,139,250',
+    icon: <GitBranch size={22} strokeWidth={1.5} />,
   },
   {
     id: 'x',
     name: 'X (Twitter)',
+    description: 'Tweets & sentimiento semántico',
+    accent: '#38bdf8',
+    accentRgb: '56,189,248',
     icon: (
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.261 5.636 5.903-5.636zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
       </svg>
     ),
-    status: 'syncing',
-    color: 'from-sky-400 to-sky-200',
-    glowColor: 'rgba(56,189,248,0.25)',
-    description: 'Actividad pública & sentimiento',
   },
   {
     id: 'linkedin',
     name: 'LinkedIn',
-    icon: <Briefcase size={28} />,
-    status: 'pending',
-    color: 'from-blue-500 to-blue-300',
-    glowColor: 'rgba(59,130,246,0.25)',
     description: 'Red profesional & experiencia',
+    accent: '#60a5fa',
+    accentRgb: '96,165,250',
+    icon: <Briefcase size={22} strokeWidth={1.5} />,
   },
   {
     id: 'spotify',
     name: 'Spotify',
-    icon: <Music size={28} />,
-    status: 'pending',
-    color: 'from-emerald-500 to-emerald-300',
-    glowColor: 'rgba(16,185,129,0.25)',
-    description: 'Gustos musicales & personalidad',
+    description: 'Gustos & personalidad sonora',
+    accent: '#34d399',
+    accentRgb: '52,211,153',
+    icon: <Music size={22} strokeWidth={1.5} />,
   },
 ]
 
-const LOG_POOL = [
-  '[GitHub] Analizando 45 repositorios...',
-  '[GitHub] Detectando lenguajes: TypeScript 67%, Python 21%...',
-  '[GitHub] Extrayendo patrones de commit...',
-  '[GitHub] Mapeando contribuciones open-source...',
-  '[GitHub] Calculando índice de colaboración...',
-  '[X] Extrayendo sentimiento semántico de 300 tweets...',
-  '[X] Identificando tópicos de interés...',
-  '[X] Analizando red de interacciones...',
-  '[X] Detectando tono comunicacional...',
-  '[X] Vectorizando embeddings de personalidad...',
+const PlatformCard = memo(function PlatformCard({
+  platform,
+  onToggle,
+}: {
+  platform: Platform
+  onToggle: (id: string) => void
+}) {
+  const { id, name, description, status, accent, accentRgb, icon } = platform
+  return (
+    <div
+      className="identity-card"
+      style={{
+        background: 'rgba(255,255,255,0.03)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        border: `1px solid rgba(${accentRgb},${status === 'pending' ? '0.1' : '0.25'})`,
+        borderRadius: 18,
+        padding: 20,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12,
+        boxShadow: status !== 'pending'
+          ? `0 8px 32px rgba(0,0,0,0.5), 0 0 40px rgba(${accentRgb},0.12), inset 0 1px 0 rgba(255,255,255,0.06)`
+          : '0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {status !== 'pending' ? (
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: `radial-gradient(ellipse at 15% 15%, rgba(${accentRgb},0.1) 0%, transparent 55%)`,
+        }} />
+      ) : null}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{
+          padding: 10, borderRadius: 12,
+          background: `rgba(${accentRgb},0.12)`,
+          border: `1px solid rgba(${accentRgb},0.22)`,
+          color: accent, display: 'flex',
+        }}>
+          {icon}
+        </div>
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          fontSize: 10, fontWeight: 600, padding: '4px 9px', borderRadius: 999,
+          ...(status === 'connected'
+            ? { background: 'rgba(52,211,153,0.1)', color: '#6ee7b7', border: '1px solid rgba(52,211,153,0.2)' }
+            : status === 'syncing'
+            ? { background: `rgba(${accentRgb},0.1)`, color: accent, border: `1px solid rgba(${accentRgb},0.2)` }
+            : { background: 'rgba(255,255,255,0.05)', color: '#475569', border: '1px solid rgba(255,255,255,0.08)' }),
+        }}>
+          {status === 'connected'
+            ? <CheckCircle2 size={10} aria-hidden="true" />
+            : status === 'syncing'
+            ? <Loader2 size={10} className="spin-icon" aria-hidden="true" />
+            : <Clock size={10} aria-hidden="true" />}
+          {status === 'connected' ? 'Conectado' : status === 'syncing' ? 'Sincronizando' : 'Pendiente'}
+        </span>
+      </div>
+
+      <div>
+        <p style={{ color: '#f1f5f9', fontWeight: 600, fontSize: 14, margin: '0 0 3px' }}>{name}</p>
+        <p style={{ color: '#334155', fontSize: 11, margin: 0, lineHeight: 1.5 }}>{description}</p>
+      </div>
+
+      <button
+        className="identity-btn"
+        onClick={() => onToggle(id)}
+        disabled={status === 'syncing'}
+        style={{
+          fontSize: 11, fontWeight: 600, padding: '11px 12px',
+          borderRadius: 8, cursor: status === 'syncing' ? 'not-allowed' : 'pointer',
+          minHeight: 44,
+          touchAction: 'manipulation',
+          WebkitTapHighlightColor: 'transparent',
+          transition: 'background 0.2s ease, color 0.2s ease, opacity 0.2s ease',
+          ...(status === 'connected'
+            ? { background: 'rgba(52,211,153,0.1)', color: '#6ee7b7', border: '1px solid rgba(52,211,153,0.2)' }
+            : status === 'syncing'
+            ? { background: `rgba(${accentRgb},0.08)`, color: accent, border: `1px solid rgba(${accentRgb},0.15)`, opacity: 0.6 }
+            : { background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.1)' }),
+        }}
+      >
+        {status === 'connected' ? 'Desconectar' : status === 'syncing' ? 'Analizando...' : 'Conectar'}
+      </button>
+    </div>
+  )
+})
+
+const LOGS = [
+  '[GitHub] Clonando fingerprint de 45 repositorios...',
+  '[GitHub] Lenguajes: TypeScript 67%, Python 21%, Go 12%',
+  '[GitHub] Índice de colaboración: 0.84 — alta actividad',
+  '[GitHub] Patrones de commit analizados: score 92/100',
+  '[X] Extrayendo sentimiento semántico de 312 tweets...',
+  '[X] Tópicos: AI, startups, distributed systems',
+  '[X] Vector de comunicación generado — tono: técnico',
+  '[X] Grafo de interacciones — 1.2k conexiones relevantes',
   '[LinkedIn] Mapeando grafo de contactos B2B...',
-  '[LinkedIn] Analizando trayectoria profesional...',
-  '[LinkedIn] Construyendo vector de habilidades...',
-  '[AI] Generando representación semántica...',
-  '[AI] Calibrando modelo de compatibilidad...',
+  '[LinkedIn] Trayectoria: 4 roles, 3 industrias detectadas',
   '[AI] Fusionando señales de identidad digital...',
-  '[AI] Entrenando agente de personalidad...',
+  '[AI] Generando embedding — dimensiones: 768',
+  '[AI] Calibrando modelo de compatibilidad v2.1...',
+  '[AI] Agente listo — precisión estimada: 94.3%',
 ]
 
-function StatusBadge({ status }: { status: ConnectionStatus }) {
-  if (status === 'connected') {
-    return (
-      <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
-        <CheckCircle2 size={13} />
-        Conectado
-      </span>
-    )
-  }
-  if (status === 'syncing') {
-    return (
-      <span className="flex items-center gap-1.5 text-xs font-medium text-purple-300">
-        <Loader2 size={13} className="animate-spin" />
-        Sincronizando
-      </span>
-    )
-  }
-  return (
-    <span className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-      <Clock size={13} />
-      Pendiente
-    </span>
-  )
+const INITIAL_STATUSES: Record<string, Status> = {
+  github: 'syncing',
+  x: 'syncing',
+  linkedin: 'pending',
+  spotify: 'pending',
 }
 
 export default function IdentitySync() {
-  const [platforms, setPlatforms] = useState(INITIAL_PLATFORMS)
-  const [logs, setLogs] = useState<{ id: number; text: string }[]>([])
-  const logIdRef = useRef(0)
-  const terminalRef = useRef<HTMLDivElement>(null)
+  const [platforms, setPlatforms] = useState<Platform[]>(() =>
+    PLATFORM_DEFS.map(p => ({ ...p, status: INITIAL_STATUSES[p.id] ?? 'pending' }))
+  )
+
+  const [logs, setLogs] = useState<string[]>([])
+  const logIdxRef = useRef(0)
+  const termRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const text = LOG_POOL[Math.floor(Math.random() * LOG_POOL.length)]
-      const id = ++logIdRef.current
-      setLogs(prev => [...prev.slice(-18), { id, text }])
-    }, 650)
-    return () => clearInterval(interval)
+    const t = setInterval(() => {
+      const line = LOGS[logIdxRef.current % LOGS.length]
+      logIdxRef.current++
+      setLogs(prev => [...prev.slice(-12), line])
+    }, 800)
+    return () => clearInterval(t)
   }, [])
 
   useEffect(() => {
-    if (terminalRef.current) {
-      terminalRef.current.scrollTop = terminalRef.current.scrollHeight
+    if (termRef.current) {
+      termRef.current.scrollTop = termRef.current.scrollHeight
     }
   }, [logs])
 
-  function handleConnect(id: string) {
+  const toggle = useCallback((id: string) => {
     setPlatforms(prev =>
-      prev.map(p =>
-        p.id === id
-          ? { ...p, status: p.status === 'pending' ? 'syncing' : p.status === 'syncing' ? 'connected' : 'pending' }
-          : p
-      )
+      prev.map(p => {
+        if (p.id !== id) return p
+        const next: Record<Status, Status> = {
+          pending: 'syncing',
+          syncing: 'connected',
+          connected: 'pending',
+        }
+        return { ...p, status: next[p.status] }
+      })
     )
-  }
+  }, [])
 
   return (
-    <div
-      className="relative min-h-screen flex flex-col items-center justify-center px-4 py-16 overflow-hidden"
-      style={{ background: '#050505' }}
-    >
-      {/* Background orbs */}
+    <>
+      <style>{`
+        @keyframes orb-pulse {
+          0%, 100% { opacity: 0.6; transform: scale(1); }
+          50% { opacity: 0.9; transform: scale(1.08); }
+        }
+        @keyframes spin-slow {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes fadeup {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        .identity-card { transition: box-shadow 0.35s ease, border-color 0.35s ease; }
+        .identity-card:hover { transform: translateY(-2px); transition: transform 0.2s ease, box-shadow 0.35s ease; }
+        .log-line { animation: fadeup 0.25s ease-out both; }
+        .live-dot { animation: blink 1.4s ease-in-out infinite; }
+        .spin-icon { animation: spin-slow 1.2s linear infinite; }
+        .cta-btn:focus-visible { outline: 2px solid #a78bfa; outline-offset: 3px; }
+        .identity-btn:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
+        @media (max-width: 480px) {
+          .cards-grid { grid-template-columns: 1fr !important; }
+          .page-heading { font-size: 28px !important; }
+          .cta-btn { width: 100%; justify-content: center; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .identity-card, .identity-card:hover { transition: none; transform: none; }
+          .log-line { animation: none; }
+          .live-dot { animation: none; }
+          .spin-icon { animation: none; }
+          * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+        }
+      `}</style>
+
       <div
-        className="pointer-events-none absolute inset-0"
-        aria-hidden="true"
-      >
-        <div
-          className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-30"
-          style={{
-            background: 'radial-gradient(circle, rgba(168,85,247,0.35) 0%, transparent 70%)',
-            filter: 'blur(80px)',
-          }}
-        />
-        <div
-          className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full opacity-20"
-          style={{
-            background: 'radial-gradient(circle, rgba(6,182,212,0.35) 0%, transparent 70%)',
-            filter: 'blur(80px)',
-          }}
-        />
-        <div
-          className="absolute top-[40%] left-[50%] w-[300px] h-[300px] rounded-full opacity-15"
-          style={{
-            background: 'radial-gradient(circle, rgba(236,72,153,0.3) 0%, transparent 70%)',
-            filter: 'blur(60px)',
-            transform: 'translate(-50%, -50%)',
-          }}
-        />
-      </div>
-
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative z-10 text-center mb-12"
-      >
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <Zap size={18} className="text-purple-400" />
-          <span className="text-xs font-semibold tracking-widest uppercase text-purple-400">
-            Identity Sync
-          </span>
-        </div>
-        <h1 className="text-4xl font-bold text-white mb-3">
-          Clona tu identidad digital
-        </h1>
-        <p className="text-slate-400 max-w-md mx-auto text-sm leading-relaxed">
-          Tu agente IA analiza tus señales digitales para construir una representación auténtica de quién eres.
-        </p>
-      </motion.div>
-
-      {/* Connection Cards Grid */}
-      <motion.div
-        initial="hidden"
-        animate="show"
-        variants={{
-          hidden: { opacity: 0 },
-          show: { opacity: 1, transition: { staggerChildren: 0.1 } },
+        style={{
+          minHeight: '100vh',
+          width: '100%',
+          background: '#050505',
+          position: 'relative',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 'calc(80px + env(safe-area-inset-top)) 20px calc(80px + env(safe-area-inset-bottom)) 20px',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
         }}
-        className="relative z-10 grid grid-cols-2 gap-4 w-full max-w-xl mb-8"
       >
-        {platforms.map((platform) => (
-          <motion.div
-            key={platform.id}
-            variants={{
-              hidden: { opacity: 0, y: 24, scale: 0.96 },
-              show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: 'easeOut' } },
-            }}
-            whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}
-            className="glass-panel rounded-2xl p-5 flex flex-col gap-3 cursor-default"
+        {/* Orbs */}
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+          <div style={{
+            position: 'absolute', borderRadius: '50%',
+            width: 700, height: 700, top: '-15%', left: '-12%',
+            background: 'radial-gradient(circle, rgba(139,92,246,0.3) 0%, transparent 65%)',
+            filter: 'blur(70px)',
+            animation: 'orb-pulse 8s ease-in-out infinite',
+          }} />
+          <div style={{
+            position: 'absolute', borderRadius: '50%',
+            width: 550, height: 550, bottom: '-18%', right: '-10%',
+            background: 'radial-gradient(circle, rgba(6,182,212,0.25) 0%, transparent 65%)',
+            filter: 'blur(60px)',
+            animation: 'orb-pulse 10s ease-in-out infinite 2s',
+          }} />
+          <div style={{
+            position: 'absolute', borderRadius: '50%',
+            width: 350, height: 350, top: '50%', left: '48%',
+            background: 'radial-gradient(circle, rgba(236,72,153,0.2) 0%, transparent 65%)',
+            filter: 'blur(50px)',
+            transform: 'translate(-50%, -50%)',
+            animation: 'orb-pulse 12s ease-in-out infinite 4s',
+          }} />
+        </div>
+
+        {/* Header */}
+        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', marginBottom: 48, maxWidth: 480 }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            background: 'rgba(139,92,246,0.12)',
+            border: '1px solid rgba(139,92,246,0.3)',
+            color: '#c4b5fd',
+            fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+            padding: '6px 14px', borderRadius: 999, marginBottom: 20,
+          }}>
+            <Zap size={11} aria-hidden="true" />
+            Identity Sync
+          </div>
+          <h1 className="page-heading" style={{
+            fontSize: 36, fontWeight: 700, color: '#ffffff',
+            letterSpacing: '-0.025em', lineHeight: 1.15, margin: '0 0 12px',
+          }}>
+            Clona tu identidad digital
+          </h1>
+          <p style={{ color: '#475569', fontSize: 14, lineHeight: 1.7, margin: 0 }}>
+            Tu agente IA analiza tus señales en la web para construir
+            una representación auténtica — lista para conectar.
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div className="cards-grid" style={{
+          position: 'relative', zIndex: 10,
+          display: 'grid', gridTemplateColumns: '1fr 1fr',
+          gap: 12, width: '100%', maxWidth: 560, marginBottom: 16,
+        }}>
+          {platforms.map(p => (
+            <PlatformCard key={p.id} platform={p} onToggle={toggle} />
+          ))}
+        </div>
+
+        {/* Terminal */}
+        <div style={{
+          position: 'relative', zIndex: 10,
+          width: '100%', maxWidth: 560,
+          background: 'rgba(255,255,255,0.025)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '1px solid rgba(139,92,246,0.18)',
+          borderRadius: 18,
+          overflow: 'hidden',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.6), 0 0 60px rgba(139,92,246,0.07), inset 0 1px 0 rgba(255,255,255,0.05)',
+        }}>
+          {/* titlebar */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            padding: '10px 16px',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+          }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'rgba(239,68,68,0.6)' }} />
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'rgba(234,179,8,0.6)' }} />
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'rgba(34,197,94,0.6)' }} />
+            <span style={{ marginLeft: 8, fontSize: 11, color: '#334155', fontFamily: 'monospace', letterSpacing: '0.05em' }}>
+              identity-agent — sync.log
+            </span>
+            <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span className="live-dot" style={{ width: 6, height: 6, borderRadius: '50%', background: '#a78bfa' }} />
+              <span style={{ fontSize: 11, color: '#a78bfa', fontFamily: 'monospace', fontWeight: 700 }}>LIVE</span>
+            </span>
+          </div>
+
+          {/* logs */}
+          <div
+            ref={termRef}
+            role="log"
+            aria-live="polite"
+            aria-label="Registro de sincronización de identidad"
             style={{
-              boxShadow:
-                platform.status === 'syncing'
-                  ? `0 0 0 1px rgba(168,85,247,0.2) inset, 0 8px 32px rgba(0,0,0,0.5), 0 0 40px ${platform.glowColor}`
-                  : platform.status === 'connected'
-                  ? `0 0 0 1px rgba(16,185,129,0.2) inset, 0 8px 32px rgba(0,0,0,0.5), 0 0 30px rgba(16,185,129,0.15)`
-                  : undefined,
+              height: 144, overflow: 'hidden', overscrollBehavior: 'contain',
+              padding: '12px 16px',
+              display: 'flex', flexDirection: 'column', gap: 6,
             }}
           >
-            {/* Icon + status row */}
-            <div className="flex items-start justify-between">
+            {logs.map((line, i) => (
               <div
-                className={`p-2.5 rounded-xl bg-gradient-to-br ${platform.color} text-black`}
-                style={{ boxShadow: `0 4px 16px ${platform.glowColor}` }}
+                key={i}
+                className="log-line"
+                style={{
+                  fontFamily: 'monospace', fontSize: 11,
+                  color: '#475569', lineHeight: 1.5,
+                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  flexShrink: 0,
+                }}
               >
-                {platform.icon}
+                <span style={{ color: '#6d28d9', marginRight: 8 }}>›</span>
+                {line}
               </div>
-              <StatusBadge status={platform.status} />
-            </div>
-
-            {/* Name + description */}
-            <div>
-              <p className="font-semibold text-white text-sm">{platform.name}</p>
-              <p className="text-xs text-slate-500 mt-0.5 leading-snug">{platform.description}</p>
-            </div>
-
-            {/* Action button */}
-            <button
-              onClick={() => handleConnect(platform.id)}
-              className={`mt-auto text-xs font-medium px-3 py-1.5 rounded-lg transition-all ${
-                platform.status === 'connected'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
-                  : platform.status === 'syncing'
-                  ? 'bg-purple-500/10 text-purple-300 border border-purple-500/20 cursor-not-allowed opacity-70'
-                  : 'bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 hover:text-white'
-              }`}
-              disabled={platform.status === 'syncing'}
-            >
-              {platform.status === 'connected'
-                ? 'Desconectar'
-                : platform.status === 'syncing'
-                ? 'Sincronizando...'
-                : 'Conectar'}
-            </button>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Crystal Terminal */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
-        className="relative z-10 w-full max-w-xl glass-panel rounded-2xl overflow-hidden"
-        style={{
-          boxShadow:
-            '0 0 0 1px rgba(168,85,247,0.12) inset, 0 8px 32px rgba(0,0,0,0.6), 0 0 60px rgba(168,85,247,0.08)',
-        }}
-      >
-        {/* Terminal header bar */}
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
-          <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
-          <span className="ml-2 text-xs text-slate-500 font-mono">identity-agent — sync.log</span>
-          <span className="ml-auto flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-            <span className="text-xs text-purple-400 font-mono">LIVE</span>
-          </span>
-        </div>
-
-        {/* Log stream */}
-        <div
-          ref={terminalRef}
-          className="h-40 overflow-y-hidden px-4 py-3 font-mono text-xs flex flex-col gap-1"
-          style={{ scrollBehavior: 'smooth' }}
-        >
-          <AnimatePresence initial={false}>
-            {logs.map((log) => (
-              <motion.div
-                key={log.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className="text-slate-400 leading-relaxed whitespace-nowrap overflow-hidden text-ellipsis"
-              >
-                <span className="text-purple-500 select-none mr-1">›</span>
-                {log.text}
-              </motion.div>
             ))}
-          </AnimatePresence>
+          </div>
         </div>
-      </motion.div>
 
-      {/* Continue CTA */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="relative z-10 mt-10"
-      >
-        <button
-          className="px-8 py-3 rounded-xl font-semibold text-sm text-white transition-all"
-          style={{
-            background: 'linear-gradient(135deg, rgba(168,85,247,0.8), rgba(236,72,153,0.8))',
-            boxShadow: '0 0 32px rgba(168,85,247,0.3)',
-          }}
-          onMouseEnter={e => {
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 48px rgba(168,85,247,0.5)'
-          }}
-          onMouseLeave={e => {
-            ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 32px rgba(168,85,247,0.3)'
-          }}
-        >
-          Continuar → Generar Agente IA
-        </button>
-      </motion.div>
-    </div>
+        {/* CTA */}
+        <div style={{ position: 'relative', zIndex: 10, marginTop: 36 }}>
+          <button
+            className="cta-btn"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 10,
+              padding: '14px 28px', borderRadius: 12,
+              background: 'linear-gradient(135deg, rgba(139,92,246,0.9), rgba(236,72,153,0.9))',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: '#ffffff', fontSize: 14, fontWeight: 600,
+              cursor: 'pointer',
+              minHeight: 48,
+              touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent',
+              boxShadow: '0 4px 24px rgba(139,92,246,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
+              transition: 'box-shadow 0.2s ease, transform 0.15s ease',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 40px rgba(139,92,246,0.6), inset 0 1px 0 rgba(255,255,255,0.2)'
+              ;(e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 24px rgba(139,92,246,0.4), inset 0 1px 0 rgba(255,255,255,0.15)'
+              ;(e.currentTarget as HTMLElement).style.transform = 'translateY(0)'
+            }}
+          >
+            Continuar — Generar Agente IA
+            <ArrowRight size={15} />
+          </button>
+        </div>
+      </div>
+    </>
   )
 }
