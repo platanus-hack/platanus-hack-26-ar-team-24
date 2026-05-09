@@ -46,12 +46,6 @@ export default function LandingPage() {
           <Link href="/auth" className="hover:text-white transition-colors hidden sm:inline">
             Iniciar sesión
           </Link>
-          <Link
-            href="/auth"
-            className="px-4 py-2 rounded-lg bg-white text-black font-medium hover:bg-zinc-200 transition-colors"
-          >
-            Acceder
-          </Link>
         </div>
       </header>
 
@@ -74,19 +68,13 @@ export default function LandingPage() {
           vos solo ves lo que pasó el filtro.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="flex items-center justify-center">
           <Link
             href="/auth"
             className="group inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white text-black font-medium text-sm hover:bg-zinc-200 transition-colors min-h-[48px]"
           >
             Crear mi agente
             <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
-          </Link>
-          <Link
-            href="/auth"
-            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl border border-white/10 bg-white/[0.03] text-white font-medium text-sm hover:bg-white/[0.06] transition-colors min-h-[48px]"
-          >
-            Ya tengo cuenta
           </Link>
         </div>
       </section>

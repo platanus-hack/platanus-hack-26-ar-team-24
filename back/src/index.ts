@@ -10,6 +10,7 @@ import { PersistenceService } from "./persistence-service.js";
 import { RuntimeClient } from "./runtime-client.js";
 import { CompatibilityService } from "./compatibility-service.js";
 import { getSupabaseUser } from "./supabase.js";
+import { GithubProfileService } from "./github-profile-service.js";
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
@@ -17,6 +18,7 @@ const envSchema = z.object({
   OPENCLAW_ADMIN_API_TOKEN: z.string().min(16).default("change-me-admin-token"),
   JUDGE_AGENT_ID: z.string().min(1).default("judge"),
   GRADER_AGENT_ID: z.string().min(1).default("grader"),
+  GITHUB_TOKEN: z.string().optional(),
   ALLOWED_ORIGINS: z.string().default("http://localhost:3001,http://127.0.0.1:3001")
 });
 
@@ -51,11 +53,13 @@ app.use(express.json());
 
 const runtimeClient = new RuntimeClient(env.OPENCLAW_RUNTIME_URL, env.OPENCLAW_ADMIN_API_TOKEN);
 const persistenceService = new PersistenceService();
+const githubProfileService = new GithubProfileService(env.GITHUB_TOKEN);
 const compatibilityService = new CompatibilityService(
   runtimeClient,
   env.GRADER_AGENT_ID,
   env.JUDGE_AGENT_ID,
-  persistenceService
+  persistenceService,
+  githubProfileService
 );
 
 class HttpError extends Error {

@@ -2,30 +2,121 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import AppNav from '@/components/layout/AppNav'
 import Section from '@/components/dashboard/Section'
 import { getAgentSession } from '@/lib/agent-session'
 import type { AgentSession } from '@/lib/agent-session'
-import { Brain, Heart, Compass, Zap, Code } from 'lucide-react'
+import { Brain, Heart, Compass, Zap, Code, ArrowRight } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function DashboardPage() {
   const router = useRouter()
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth()
   const [session, setSession] = useState<AgentSession | null>(null)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     const activeSession = getAgentSession()
     if (!activeSession) {
-      router.replace('/auth/register')
+      setSession(null)
+      setReady(true)
       return
     }
 
     setSession(activeSession)
+    setReady(true)
   }, [router])
 
-  if (!session) {
+  useEffect(() => {
+    if (ready && !authLoading && !session && !isAuthenticated) {
+      router.replace('/auth/register')
+    }
+  }, [authLoading, isAuthenticated, ready, router, session])
+
+  if (!ready || authLoading) {
     return (
       <div className="min-h-screen bg-ink-950 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+      </div>
+    )
+  }
+
+  if (!session && !isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-ink-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    const displayName = user?.name || user?.username || user?.email?.split('@')[0] || 'tu cuenta'
+
+    return (
+      <div className="min-h-screen bg-ink-950 text-white">
+        <AppNav />
+
+        <main className="max-w-6xl mx-auto px-6 py-16">
+          <section className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] items-start">
+            <div className="space-y-6">
+              <p className="text-xs font-mono text-zinc-500 tracking-wider uppercase">
+                Agent Workspace
+              </p>
+              <h1 className="font-serif text-4xl sm:text-5xl leading-[1.02]">
+                La cuenta ya existe.
+                <br />
+                <span className="italic text-zinc-300">Ahora falta modelar tu agente.</span>
+              </h1>
+              <p className="max-w-2xl text-zinc-400 leading-relaxed">
+                {displayName}, ya estás adentro. Ahora toca crear tu agente para que pueda empezar
+                a conversar, buscar matches y aprender de cada interacción.
+              </p>
+
+              <div>
+                <Link
+                  href="/onboarding/candidate"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-4 text-base font-medium text-black hover:bg-zinc-200 active:scale-[0.99] transition-all"
+                >
+                  Crear agente
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
+            </div>
+
+            <div className="glass-panel rounded-[1.75rem] p-6 sm:p-7">
+              <div className="flex items-center gap-2 text-zinc-400 mb-5">
+                <Compass size={14} />
+                <span className="text-[10px] font-mono uppercase tracking-wider">
+                  Qué vas a desbloquear
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <Capability
+                  title="Fuentes conectadas"
+                  body="Sincronizá señales públicas y dejá que el perfil se refine desde dentro de la app."
+                />
+                <Capability
+                  title="Conversaciones guardadas"
+                  body="Cada simulación queda persistida para revisar compatibilidades, objeciones y evolución."
+                />
+                <Capability
+                  title="Dashboard operativo"
+                  body="Una vez creado el agente, el dashboard centraliza score, fricción y patrones reales."
+                />
+              </div>
+
+              <Link
+                href="/onboarding/sync"
+                className="mt-7 inline-flex items-center gap-2 text-sm text-zinc-300 hover:text-white transition-colors"
+              >
+                Ver fuentes disponibles
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+          </section>
+        </main>
       </div>
     )
   }
@@ -49,8 +140,8 @@ export default function DashboardPage() {
           </p>
           <h1 className="font-serif text-4xl sm:text-5xl mb-3">Así quedó {session.activeAgentName}.</h1>
           <p className="text-zinc-400 max-w-2xl">
-            Este dashboard consume el perfil devuelto por `POST /agents` y reutiliza el `agentId`
-            persistido para el resto del frontend.
+            Acá ves la lectura base del agente: cómo quedó modelado, qué señales aparecen primero
+            y qué rasgos tienen más peso en las conversaciones.
           </p>
         </div>
 
@@ -133,6 +224,21 @@ function BentoCard({
         <span className="text-[10px] font-mono uppercase tracking-wider">{label}</span>
       </div>
       <div className="flex-1 flex flex-col justify-center">{children}</div>
+    </div>
+  )
+}
+
+function Capability({
+  title,
+  body,
+}: {
+  title: string
+  body: string
+}) {
+  return (
+    <div className="rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-4">
+      <p className="text-sm text-white mb-1.5">{title}</p>
+      <p className="text-sm text-zinc-500 leading-relaxed">{body}</p>
     </div>
   )
 }

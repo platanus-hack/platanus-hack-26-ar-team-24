@@ -19,16 +19,16 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   {
-    href: '/dashboard',
-    label: 'Dashboard',
-    icon: <LayoutDashboard size={14} />,
-    match: (p) => p === '/dashboard' || p.startsWith('/dashboard/'),
-  },
-  {
     href: '/arena',
     label: 'Arena',
     icon: <Radio size={14} />,
     match: (p) => p === '/arena' || p.startsWith('/arena/'),
+  },
+  {
+    href: '/dashboard',
+    label: 'Dashboard',
+    icon: <LayoutDashboard size={14} />,
+    match: (p) => p === '/dashboard' || p.startsWith('/dashboard/'),
   },
   {
     href: '/onboarding/sync',
@@ -91,7 +91,7 @@ export default function AppNav({ maxWidth = 'max-w-6xl' }: { maxWidth?: string }
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                className={`inline-flex items-center justify-center gap-2 min-w-[118px] px-3 py-1.5 rounded-lg text-sm transition-colors ${
                   active
                     ? 'bg-white/[0.06] text-white border border-white/10'
                     : 'text-zinc-400 hover:text-white hover:bg-white/[0.03] border border-transparent'

@@ -34,9 +34,9 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink-950 text-white grid grid-cols-1 lg:grid-cols-2">
+    <div className="min-h-dvh bg-ink-950 text-white grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr] xl:grid-cols-[1.15fr_0.85fr]">
       {/* LEFT — editorial side */}
-      <aside className="relative hidden lg:flex flex-col justify-between p-12 border-r border-white/5 overflow-hidden">
+      <aside className="relative hidden lg:flex flex-col justify-between px-12 py-10 xl:px-16 xl:py-12 border-r border-white/5 overflow-hidden">
         <div
           className="pointer-events-none absolute inset-0"
           aria-hidden="true"
@@ -50,9 +50,9 @@ export default function AuthPage() {
           <Logo href="/landing" />
         </div>
 
-        <div className="relative max-w-md">
+        <div className="relative max-w-xl pr-8">
           <Quote size={28} className="text-purple-400/50 mb-6" />
-          <p className="font-serif text-3xl xl:text-4xl text-white leading-snug mb-6">
+          <p className="font-serif text-4xl xl:text-5xl 2xl:text-6xl text-white leading-[1.05] mb-6">
             &ldquo;Las conexiones que importan no se buscan.{' '}
             <span className="italic text-zinc-300">Se reconocen.</span>&rdquo;
           </p>
@@ -70,7 +70,7 @@ export default function AuthPage() {
           </div>
         </div>
 
-        <div className="relative grid grid-cols-3 gap-6 max-w-md">
+        <div className="relative grid grid-cols-3 gap-8 max-w-lg">
           <Stat value="1,284" label="simulaciones" />
           <Stat value="37%" label="match rate" />
           <Stat value="21" label="conexiones reales" />
@@ -78,7 +78,7 @@ export default function AuthPage() {
       </aside>
 
       {/* RIGHT — form side */}
-      <main className="relative flex items-center justify-center px-6 py-12 sm:py-16">
+      <main className="relative flex items-center justify-center px-6 py-12 sm:px-8 lg:px-12 xl:px-16 sm:py-16">
         <Link
           href="/landing"
           className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors"
@@ -87,7 +87,7 @@ export default function AuthPage() {
           Volver
         </Link>
 
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-xl">
           <div className="lg:hidden mb-10">
             <Logo />
           </div>
@@ -95,11 +95,11 @@ export default function AuthPage() {
           <p className="text-xs font-mono text-zinc-500 mb-3 tracking-wider uppercase">
             Acceder
           </p>
-          <h1 className="font-serif text-4xl sm:text-5xl mb-3 leading-tight">
+          <h1 className="font-serif text-4xl sm:text-5xl xl:text-6xl mb-4 leading-[1.02] max-w-[12ch]">
             Tu agente te está<br />
             <span className="italic text-zinc-300">esperando.</span>
           </h1>
-          <p className="text-zinc-400 mb-10">
+          <p className="text-zinc-400 text-base sm:text-lg max-w-[34rem] mb-10 leading-relaxed">
             Empezá con tu identidad existente. Ya entrenamos modelos contra
             <span className="text-white"> 1,284</span> personas — solo falta vos.
           </p>
@@ -113,13 +113,13 @@ export default function AuthPage() {
             </div>
           )}
 
-          <div className="space-y-3">
+          <div className="space-y-3 max-w-lg">
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
               aria-busy={isLoading}
-              className="w-full py-3.5 px-4 bg-white text-black rounded-xl font-medium text-sm hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2.5 min-h-[48px] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-4 px-5 bg-white text-black rounded-2xl font-medium text-base hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2.5 min-h-[56px] disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -141,13 +141,13 @@ export default function AuthPage() {
 
             <Link
               href="/auth/login"
-              className="w-full py-3.5 px-4 rounded-xl border border-white/10 bg-white/[0.03] text-white font-medium text-sm hover:bg-white/[0.06] transition-colors flex items-center justify-center min-h-[48px]"
+              className="w-full py-4 px-5 rounded-2xl border border-white/10 bg-white/[0.03] text-white font-medium text-base hover:bg-white/[0.06] transition-colors flex items-center justify-center min-h-[56px]"
             >
               Email y contraseña
             </Link>
           </div>
 
-          <p className="text-center text-xs text-zinc-600 mt-10">
+          <p className="max-w-lg text-center text-xs text-zinc-600 mt-10">
             Al continuar aceptás los términos. Tu data es tuya — siempre.
           </p>
         </div>

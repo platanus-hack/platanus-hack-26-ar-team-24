@@ -12,9 +12,11 @@ html {
   background-color: #0A0A0A;
   color-scheme: dark;
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }
 
 body {
+  min-height: 100dvh;
   background-color: #0A0A0A;
   color: #ffffff;
   -webkit-font-smoothing: antialiased;

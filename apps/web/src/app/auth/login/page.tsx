@@ -34,7 +34,7 @@ export default function LoginPage() {
 
       if (signInError) throw signInError
 
-      router.push('/onboarding/sync')
+      router.push('/dashboard')
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'No pudimos iniciar sesión. Intentá de nuevo.'

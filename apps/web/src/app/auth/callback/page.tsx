@@ -39,7 +39,7 @@ export default function CallbackPage() {
         // Small buffer so storage settles before navigating
         await new Promise((resolve) => setTimeout(resolve, 200))
 
-        router.replace('/onboarding/sync')
+        router.replace('/dashboard')
       } catch (err) {
         console.error('Callback error:', err)
         setStatus('error')

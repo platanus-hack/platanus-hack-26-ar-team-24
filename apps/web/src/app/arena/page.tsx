@@ -136,7 +136,7 @@ export default function ArenaPage() {
           <p className="text-xs font-mono text-zinc-500 mb-3 tracking-wider uppercase">Simulation Arena</p>
           <h1 className="font-serif text-4xl sm:text-5xl mb-3">Tu agente conversa por vos.</h1>
           <p className="text-zinc-400 max-w-2xl">
-            Esta pantalla está conectada a `GET /agents` y `POST /conversations/run`.
+            Elegí otro perfil, abrí una simulación y seguí la conversación completa de punta a punta.
           </p>
         </div>
 
@@ -198,7 +198,7 @@ export default function ArenaPage() {
             </div>
             <div className="flex-1 px-5 py-4 flex flex-col gap-3 overflow-y-auto min-h-[380px]">
               {transcript.length === 0 ? (
-                <div className="text-sm text-zinc-500">Corré una conversación para ver el transcript real del backend.</div>
+                <div className="text-sm text-zinc-500">Corré una conversación para ver el transcript completo.</div>
               ) : (
                 transcript.map((message, index) => (
                   <div
@@ -343,8 +343,8 @@ function AgentPanel({
         </p>
         <p className="text-xs text-zinc-400 leading-relaxed">
           {align === 'left'
-            ? 'Este panel representa al agente persistido en localStorage.'
-            : 'Este panel representa el agente elegido desde el backend.'}
+            ? 'Este panel representa a tu agente activo.'
+            : 'Este panel representa al perfil con el que lo estás haciendo conversar.'}
         </p>
       </div>
     </div>

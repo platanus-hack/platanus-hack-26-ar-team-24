@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { ArrowRight, Radar, Sparkle, Target } from 'lucide-react'
+import AppNav from '@/components/layout/AppNav'
 import { api } from '@/lib/api'
 import { getAgentSession } from '@/lib/agent-session'
 import type { AgentSession } from '@/lib/agent-session'
@@ -21,7 +23,7 @@ export default function FounderDashboard() {
     const activeSession = getAgentSession()
 
     if (!activeSession || activeSession.role !== 'founder') {
-      router.replace('/onboarding/startup')
+      router.replace('/onboarding/candidate')
       return
     }
 
@@ -55,8 +57,8 @@ export default function FounderDashboard() {
 
   if (loading || !session) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-400"></div>
+      <div className="min-h-[100dvh] bg-ink-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white/60" />
       </div>
     )
   }
@@ -64,112 +66,219 @@ export default function FounderDashboard() {
   const grading = session.grading
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <div className="flex justify-between items-center gap-6 flex-wrap">
+    <div className="min-h-[100dvh] bg-ink-950 text-white">
+      <AppNav />
+
+      <main className="max-w-7xl mx-auto px-6 py-12 sm:py-16">
+        <section className="grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-8 items-start mb-10">
           <div>
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
+            <p className="text-xs font-mono text-zinc-500 mb-4 tracking-[0.22em] uppercase">
+              Founder dashboard
+            </p>
+            <h1 className="font-serif text-5xl sm:text-6xl leading-[0.98] tracking-tight mb-5">
               {session.activeAgentName}
             </h1>
-            <p className="text-slate-400">Tu agente fundador ya puede evaluar compatibilidad contra otros agentes existentes.</p>
-          </div>
-          <div className="px-4 py-2 rounded-lg bg-slate-800/60 border border-pink-500/20 text-sm text-slate-300">
-            Agent ID: <span className="font-mono text-white">{session.activeAgentId}</span>
-          </div>
-        </div>
+            <p className="text-lg text-zinc-400 leading-relaxed max-w-[38rem]">
+              Tu agente fundador ya puede filtrar conversaciones, detectar química real y decidir
+              con quién vale la pena seguir hablando.
+            </p>
 
-        {grading && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <Metric label="Overall" value={grading.overallScore} />
-            <Metric label="Personal" value={grading.personalScore} />
-            <Metric label="Social" value={grading.socialScore} />
-            <Metric label="Professional" value={grading.professionalScore} />
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-4xl">
+              <StatCard icon={<Radar size={16} />} label="Agent ID" value={session.activeAgentId} />
+              <StatCard
+                icon={<Target size={16} />}
+                label="Candidates"
+                value={matching ? String(matching.evaluatedCandidates) : '0'}
+              />
+              <StatCard
+                icon={<Sparkle size={16} />}
+                label="Matches"
+                value={matching ? String(matching.returnedMatches) : '0'}
+              />
+            </div>
           </div>
-        )}
 
-        <div className="rounded-2xl border border-pink-500/30 bg-slate-800/40 p-6 space-y-4">
-          <h2 className="text-2xl font-bold text-white">Matchmaking automático</h2>
-          <p className="text-slate-400">Esto llama a `POST /agents/:id/matchmake` usando tu `agentId` persistido.</p>
-          <textarea
-            value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
-            rows={3}
-            className="w-full px-4 py-3 bg-slate-900/70 border border-pink-500/20 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 resize-none"
-          />
-          <button
-            onClick={handleRunMatching}
-            disabled={matchingLoading}
-            className="px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 disabled:opacity-50 rounded-lg font-semibold transition-all"
-          >
-            {matchingLoading ? 'Corriendo matchmaking...' : 'Buscar matches'}
-          </button>
-        </div>
+          <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] backdrop-blur-xl shadow-[0_24px_80px_-28px_rgba(0,0,0,0.65)] overflow-hidden">
+            <div className="px-7 sm:px-9 py-7 border-b border-white/6">
+              <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-zinc-500 mb-3">
+                Matchmaking
+              </p>
+              <h2 className="font-serif text-3xl leading-tight mb-3">
+                Definí qué tipo de conexión querés encontrar.
+              </h2>
+              <p className="text-sm sm:text-base text-zinc-400 leading-relaxed">
+                Tu agente usa este brief para salir a filtrar conversaciones y detectar con quién
+                realmente vale la pena seguir hablando.
+              </p>
+            </div>
 
-        {error && (
-          <div className="p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300">
-            {error}
+            <div className="px-7 sm:px-9 py-7">
+              {error && (
+                <div className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/[0.06] px-4 py-3 text-sm text-red-300">
+                  {error}
+                </div>
+              )}
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-[11px] font-mono uppercase tracking-[0.2em] text-zinc-500 mb-2">
+                    Search brief
+                  </label>
+                  <textarea
+                    value={purpose}
+                    onChange={(e) => setPurpose(e.target.value)}
+                    rows={5}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-base text-white placeholder:text-zinc-600 focus:outline-none focus:border-white/25 focus:bg-white/[0.06] resize-none transition-colors"
+                  />
+                </div>
+
+                {grading && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <Metric label="Overall" value={grading.overallScore} />
+                    <Metric label="Personal" value={grading.personalScore} />
+                    <Metric label="Social" value={grading.socialScore} />
+                    <Metric label="Professional" value={grading.professionalScore} />
+                  </div>
+                )}
+
+                <button
+                  onClick={handleRunMatching}
+                  disabled={matchingLoading}
+                  className="group w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-white text-black px-5 py-4 text-base font-medium hover:bg-zinc-200 active:scale-[0.99] transition-all disabled:opacity-60"
+                >
+                  {matchingLoading ? 'Corriendo matchmaking...' : 'Buscar matches'}
+                  {!matchingLoading && <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />}
+                </button>
+              </div>
+            </div>
           </div>
-        )}
+        </section>
 
         {matching && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-6">
-              <h2 className="text-2xl font-bold mb-2">Resultado</h2>
-              <p className="text-slate-300">Evaluados: {matching.evaluatedCandidates} · Devueltos: {matching.returnedMatches}</p>
+          <section className="space-y-6">
+            <div className="flex items-end justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-xs font-mono text-zinc-500 mb-2 tracking-[0.22em] uppercase">
+                  Results
+                </p>
+                <h2 className="font-serif text-3xl sm:text-4xl leading-tight">
+                  Conversaciones que sí sobrevivieron el filtro.
+                </h2>
+              </div>
+              <p className="text-sm text-zinc-500">
+                Evaluados: {matching.evaluatedCandidates} · Matches: {matching.returnedMatches}
+              </p>
             </div>
 
             <div className="grid gap-4">
               {matching.matches.map((match) => (
-                <div key={match.conversationId} className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-6">
-                  <div className="flex items-start justify-between gap-4 mb-4">
+                <div
+                  key={match.conversationId}
+                  className="rounded-[1.75rem] border border-white/10 bg-white/[0.035] px-6 py-6 sm:px-7 sm:py-7"
+                >
+                  <div className="flex items-start justify-between gap-4 mb-5 flex-wrap">
+                    <div className="max-w-2xl">
+                      <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500 mb-2">
+                        Candidate
+                      </p>
+                      <h3 className="font-serif text-2xl text-white mb-2">{match.candidateId}</h3>
+                      <p className="text-sm text-zinc-400 leading-relaxed">
+                        {match.compatibility.summary}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500 mb-1">
+                        Compatibility
+                      </p>
+                      <p className="font-serif text-4xl text-white">
+                        {Math.round(match.compatibility.score * 100)}
+                        <span className="text-zinc-500 text-2xl">%</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-6">
                     <div>
-                      <h3 className="text-lg font-bold text-slate-100">{match.candidateId}</h3>
-                      <p className="text-sm text-slate-400">{match.compatibility.summary}</p>
+                      <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500 mb-3">
+                        Reasons
+                      </p>
+                      <div className="space-y-2">
+                        {match.compatibility.reasons.map((reason) => (
+                          <div
+                            key={reason}
+                            className="rounded-xl border border-white/8 bg-black/15 px-4 py-3 text-sm text-zinc-300"
+                          >
+                            {reason}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="text-3xl font-bold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text">
-                      {Math.round(match.compatibility.score * 100)}%
+
+                    <div className="space-y-4">
+                      {match.compatibility.sharedInterests.length > 0 && (
+                        <div>
+                          <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500 mb-3">
+                            Shared interests
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {match.compatibility.sharedInterests.map((interest) => (
+                              <span
+                                key={interest}
+                                className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-sm text-white"
+                              >
+                                {interest}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <Link
+                        href="/arena"
+                        className="inline-flex items-center gap-2 text-sm text-white hover:text-zinc-300 transition-colors"
+                      >
+                        Abrir Arena para revisar el historial
+                        <ArrowRight size={14} />
+                      </Link>
                     </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-slate-300 mb-2">Razones</h4>
-                    <ul className="space-y-1 text-sm text-slate-400">
-                      {match.compatibility.reasons.map((reason) => (
-                        <li key={reason}>• {reason}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {match.compatibility.sharedInterests.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {match.compatibility.sharedInterests.map((interest) => (
-                        <span key={interest} className="px-2 py-1 bg-purple-600/40 rounded text-xs">
-                          {interest}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="mt-4">
-                    <Link href="/arena" className="text-sm text-pink-300 hover:text-pink-200">
-                      Abrir Arena para correr otra conversación →
-                    </Link>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
+      </main>
+    </div>
+  )
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-[1.5rem] border border-white/8 bg-white/[0.025] px-5 py-5">
+      <div className="flex items-center gap-2 text-zinc-500 mb-3">
+        {icon}
+        <span className="text-[11px] font-mono uppercase tracking-[0.18em]">{label}</span>
       </div>
+      <p className="text-base text-white break-all">{value}</p>
     </div>
   )
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-slate-900/40 p-4">
-      <div className="text-xs uppercase tracking-wider text-slate-500 mb-2">{label}</div>
-      <div className="text-2xl font-bold text-white">{Math.round(value * 100)}%</div>
+    <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+      <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500 mb-2">
+        {label}
+      </div>
+      <div className="text-2xl font-semibold text-white">{Math.round(value * 100)}%</div>
     </div>
   )
 }

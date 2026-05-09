@@ -11,6 +11,7 @@ import { graderProfileSchema, judgeDecisionSchema } from "./types.js";
 import { PersistenceService } from "./persistence-service.js";
 import { RuntimeClient } from "./runtime-client.js";
 import { logger } from "./logger.js";
+import { GithubProfileService, type GithubProfileInsight } from "./github-profile-service.js";
 
 const PERSONAL_TOPIC_AGENDA = [
   {
@@ -38,7 +39,8 @@ export class CompatibilityService {
     private runtime: RuntimeClient,
     private graderAgentId: string,
     private judgeAgentId: string,
-    private persistence: PersistenceService
+    private persistence: PersistenceService,
+    private githubProfileService?: GithubProfileService
   ) {}
 
   async createProfiledAgent(
@@ -52,11 +54,14 @@ export class CompatibilityService {
     await this.runtime.ensureAgentExists(this.graderAgentId);
     await this.runtime.createAgent(agentId);
 
+    const githubInsight = await this.maybeEnrichGithubProfile(user);
+    const enrichedUser = this.mergeGithubInsightIntoUser(user, githubInsight);
+
     logger.debug("Evaluating user profile", { agentId });
-    const grade = await this.evaluateProfile(agentId, user);
+    const grade = await this.evaluateProfile(agentId, enrichedUser, githubInsight);
 
     logger.debug("Writing agent profile files", { agentId, overallScore: grade.overallScore });
-    await this.writeAgentProfileFiles(agentId, user, grade);
+    await this.writeAgentProfileFiles(agentId, enrichedUser, grade, githubInsight);
 
     if (ownerUserId && ownerAccessToken) {
       await this.persistence.upsertAgentIdentity({
@@ -64,8 +69,8 @@ export class CompatibilityService {
         ownerAccessToken,
         agentId,
         agentName: user.name,
-        role: this.extractAgentRole(user),
-        profile: user,
+        role: this.extractAgentRole(enrichedUser),
+        profile: enrichedUser,
         grading: grade
       });
     }
@@ -308,7 +313,11 @@ export class CompatibilityService {
     };
   }
 
-  private async evaluateProfile(agentId: string, user: UserProfile): Promise<GraderProfile> {
+  private async evaluateProfile(
+    agentId: string,
+    user: UserProfile,
+    githubInsight?: GithubProfileInsight | null
+  ): Promise<GraderProfile> {
     const graderPrompt = [
       `Crea un perfil psicológico auténtico para ${agentId}.`,
       "",
@@ -323,9 +332,18 @@ export class CompatibilityService {
       "- interests: Temas que genuinamente le importan",
       "- values: Sus principios",
       "",
+      githubInsight
+        ? `Contexto adicional verificado desde GitHub: ${githubInsight.summary}`
+        : null,
+      githubInsight && githubInsight.strengthSignals.length > 0
+        ? `Señales técnicas detectadas: ${githubInsight.strengthSignals.join(", ")}`
+        : null,
+      "",
       "Datos del usuario:",
       JSON.stringify(user, null, 2)
-    ].join("\n\n");
+    ]
+      .filter(Boolean)
+      .join("\n\n");
 
     const rawText = await this.runtime.sendMessage({
       agentId: this.graderAgentId,
@@ -478,7 +496,8 @@ export class CompatibilityService {
   private async writeAgentProfileFiles(
     agentId: string,
     user: UserProfile,
-    grade: GraderProfile
+    grade: GraderProfile,
+    githubInsight?: GithubProfileInsight | null
   ) {
     const identityContent = [
       "# Identity",
@@ -487,9 +506,13 @@ export class CompatibilityService {
       user.name ? `Name represented: ${user.name}` : null,
       user.age ? `Age: ${user.age}` : null,
       user.location ? `Location: ${user.location}` : null,
+      githubInsight?.profileUrl ? `GitHub: ${githubInsight.profileUrl}` : null,
       "",
       "Summary:",
-      grade.summary
+      grade.summary,
+      githubInsight ? "" : null,
+      githubInsight ? "GitHub snapshot:" : null,
+      githubInsight ? githubInsight.headline : null
     ]
       .filter(Boolean)
       .join("\n");
@@ -500,16 +523,22 @@ export class CompatibilityService {
       grade.personalitySummary,
       "",
       `Conversation style: ${grade.conversationStyle}`,
+      githubInsight ? `Technical headline: ${githubInsight.headline}` : null,
       "",
       "Values:",
       ...grade.values.map((value) => `- ${value}`),
       "",
       "Strengths:",
       ...grade.strengths.map((value) => `- ${value}`),
+      ...(githubInsight?.strengthSignals.length
+        ? ["", "GitHub-backed strength signals:", ...githubInsight.strengthSignals.map((value) => `- ${value}`)]
+        : []),
       "",
       "Risks or friction points:",
       ...grade.risks.map((value) => `- ${value}`)
-    ].join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     const userContent = [
       "# User Profile",
@@ -526,8 +555,22 @@ export class CompatibilityService {
       `- professionalScore: ${grade.professionalScore}`,
       "",
       "## Interests",
-      ...grade.interests.map((interest) => `- ${interest}`)
-    ].join("\n");
+      ...grade.interests.map((interest) => `- ${interest}`),
+      githubInsight ? "" : null,
+      githubInsight ? "## GitHub enrichment" : null,
+      githubInsight ? `- username: ${githubInsight.username}` : null,
+      githubInsight ? `- summary: ${githubInsight.summary}` : null,
+      ...(githubInsight?.strengthSignals ?? []).map((signal) => `- strengthSignal: ${signal}`),
+      ...(githubInsight?.interestSignals ?? []).map((signal) => `- interestSignal: ${signal}`),
+      ...(githubInsight?.languageBreakdown.length
+        ? ["", "## GitHub languages", ...githubInsight.languageBreakdown.map((item) => `- ${item.language}`)]
+        : []),
+      ...(githubInsight?.topicBreakdown.length
+        ? ["", "## GitHub topics", ...githubInsight.topicBreakdown.map((item) => `- ${item.topic}`)]
+        : [])
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     const agentsContent = [
       `# ${agentId}`,
@@ -540,22 +583,109 @@ export class CompatibilityService {
       "Maintain coherence with SOUL.md, IDENTITY.md, and USER.md.",
       "Never invent character traits opposite to evaluated scores and traits.",
       "You are allowed to disagree, debate ideas, lose interest, or decide there is no compatibility.",
+      githubInsight ? "Use the GitHub context as real evidence about technical depth, stack, and builder habits." : null,
       "",
       "Main interests:",
-      ...grade.interests.map((interest) => `- ${interest}`)
-    ].join("\n");
+      ...grade.interests.map((interest) => `- ${interest}`),
+      ...(githubInsight?.languageBreakdown.length
+        ? ["", "Observed technical stack:", ...githubInsight.languageBreakdown.map((item) => `- ${item.language}`)]
+        : [])
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const githubContent = githubInsight
+      ? [
+          "# GitHub Context",
+          "",
+          `Profile: ${githubInsight.profileUrl}`,
+          `Username: ${githubInsight.username}`,
+          "",
+          "Headline:",
+          githubInsight.headline,
+          "",
+          "Summary:",
+          githubInsight.summary,
+          "",
+          "Languages:",
+          ...githubInsight.languageBreakdown.map((item) => `- ${item.language}`),
+          "",
+          "Topics:",
+          ...githubInsight.topicBreakdown.map((item) => `- ${item.topic}`),
+          "",
+          "Strength signals:",
+          ...githubInsight.strengthSignals.map((item) => `- ${item}`),
+          "",
+          "Collaboration signals:",
+          ...githubInsight.collaborationSignals.map((item) => `- ${item}`)
+        ].join("\n")
+      : "";
 
     await this.runtime.updateFiles(agentId, {
       "IDENTITY.md": identityContent,
       "SOUL.md": soulContent,
       "USER.md": userContent,
-      "AGENTS.md": agentsContent
+      "AGENTS.md": agentsContent,
+      ...(githubContent ? { "GITHUB.md": githubContent } : {})
     });
   }
 
   private extractAgentRole(user: UserProfile): string | null {
     const role = user.professional?.role;
     return typeof role === "string" ? role : null;
+  }
+
+  private async maybeEnrichGithubProfile(user: UserProfile) {
+    const githubUrl =
+      typeof user.githubUrl === "string"
+        ? user.githubUrl
+        : typeof user.extra?.githubUrl === "string"
+          ? user.extra.githubUrl
+          : null;
+
+    if (!githubUrl || !this.githubProfileService) {
+      return null;
+    }
+
+    logger.info("Enriching profile with GitHub data", { githubUrl });
+    return await this.githubProfileService.enrichFromUrl(githubUrl);
+  }
+
+  private mergeGithubInsightIntoUser(user: UserProfile, githubInsight?: GithubProfileInsight | null): UserProfile {
+    if (!githubInsight) {
+      return user;
+    }
+
+    const derivedStack = [
+      ...githubInsight.languageBreakdown.map((item) => item.language),
+      ...githubInsight.topicBreakdown.map((item) => item.topic)
+    ].slice(0, 12);
+
+    return {
+      ...user,
+      professional: {
+        ...user.professional,
+        githubSummary: githubInsight.summary,
+        githubHeadline: githubInsight.headline,
+        githubStack: derivedStack,
+        githubStrengthSignals: githubInsight.strengthSignals
+      },
+      extra: {
+        ...user.extra,
+        githubUrl: githubInsight.profileUrl,
+        githubProfile: {
+          username: githubInsight.username,
+          headline: githubInsight.headline,
+          summary: githubInsight.summary,
+          strengthSignals: githubInsight.strengthSignals,
+          interestSignals: githubInsight.interestSignals,
+          collaborationSignals: githubInsight.collaborationSignals,
+          languageBreakdown: githubInsight.languageBreakdown,
+          topicBreakdown: githubInsight.topicBreakdown,
+          derivedStack
+        }
+      }
+    };
   }
 
   private sanitizeAgentUtterance(text: string): string {

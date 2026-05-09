@@ -10,6 +10,7 @@ export interface UserProfilePayload {
   name: string
   age?: string | number
   location?: string
+  githubUrl?: string
   bio?: string
   personal?: Record<string, unknown>
   social?: Record<string, unknown>
