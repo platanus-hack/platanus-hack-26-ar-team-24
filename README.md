@@ -1,4 +1,4 @@
-# AgentLink - AI-Mediated Talent-Startup Matching Platform
+# KnowAHuman - AI-Mediated Talent-Startup Matching Platform
 
 **Platanus Hack 26 | Team 24 | Buenos Aires | Track: 🛸 Future**
 
@@ -8,7 +8,7 @@
 
 ## 📋 Project Overview
 
-AgentLink is an intelligent platform that bridges the gap between talented developers/professionals and innovative startups. Using AI-mediated matching, we connect job seekers with founder teams based on skill compatibility, experience levels, and technical alignment.
+KnowAHuman is an intelligent platform that bridges the gap between talented developers/professionals and innovative startups. Using AI-mediated matching, we connect job seekers with founder teams based on skill compatibility, experience levels, and technical alignment.
 
 **Status:** MVP Backend ✅ Complete | Frontend 🔨 In Progress
 
