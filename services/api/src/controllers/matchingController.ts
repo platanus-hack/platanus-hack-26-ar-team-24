@@ -2,7 +2,6 @@ import { Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.js';
 import { matchingService } from '../services/matchingService.js';
 import { profileService } from '../services/profileService.js';
-import { aiService } from '../services/aiService.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { HttpError } from '../types/index.js';
 
@@ -14,13 +13,41 @@ export const matchingController = {
         return;
       }
 
-      // Get the user's startup profile
-      const startup = await profileService.getStartupProfileByUserId(
-        req.user.id
-      );
+      // Get startup profile for this user
+      const { data: startup, error: startupError } = await profileService.getStartupProfile(req.user.id);
 
-      // Run matching process
-      const matches = await matchingService.runMatchingProcess(startup.id);
+      if (startupError || !startup) {
+        sendError(res, 'Startup profile not found', 404);
+        return;
+      }
+
+      // Get all candidates
+      const { data: candidates, error: candidatesError } = await profileService.getAllCandidates();
+
+      if (candidatesError || !candidates || candidates.length === 0) {
+        sendSuccess(res, {
+          startup_id: startup.id,
+          matches_count: 0,
+          matches: [],
+        }, 200);
+        return;
+      }
+
+      // Calculate matches
+      const matches = candidates.map(candidate => {
+        const matchScore = matchingService.calculateMatchScore(startup, candidate);
+        return {
+          id: `${candidate.id}-${startup.id}`,
+          candidate_id: candidate.id,
+          startup_id: startup.id,
+          match_score: matchScore,
+          summary: matchingService.generateSummary(candidate, startup, matchScore),
+          reasons: matchingService.generateReasons(candidate, startup),
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+      }).sort((a, b) => b.match_score - a.match_score);
 
       sendSuccess(res, {
         startup_id: startup.id,
@@ -43,69 +70,35 @@ export const matchingController = {
         return;
       }
 
-      // Determine if user is candidate or founder
-      const { userId } = req.params;
-      const profileId = userId || req.user.id;
+      // Get startup profile
+      const { data: startup } = await profileService.getStartupProfile(req.user.id);
 
-      let matches;
-      try {
-        // Try to get candidate profile
-        const candidate = await profileService.getCandidateProfile(profileId);
-        matches = await matchingService.getMatchesForCandidate(candidate.id);
-      } catch {
-        // If not candidate, try founder
-        const startup = await profileService.getStartupProfileByUserId(profileId);
-        matches = await matchingService.getMatchesForStartup(startup.id);
+      if (!startup) {
+        sendError(res, 'Startup profile not found', 404);
+        return;
       }
+
+      // Get all candidates for matching
+      const { data: candidates } = await profileService.getAllCandidates();
+
+      if (!candidates || candidates.length === 0) {
+        sendSuccess(res, { matches: [] }, 200);
+        return;
+      }
+
+      const matches = candidates.map(candidate => ({
+        id: `${candidate.id}-${startup.id}`,
+        candidate_id: candidate.id,
+        startup_id: startup.id,
+        match_score: matchingService.calculateMatchScore(startup, candidate),
+        summary: matchingService.generateSummary(candidate, startup, matchingService.calculateMatchScore(startup, candidate)),
+        reasons: matchingService.generateReasons(candidate, startup),
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })).sort((a, b) => b.match_score - a.match_score);
 
       sendSuccess(res, { matches }, 200);
-    } catch (error) {
-      if (error instanceof HttpError) {
-        sendError(res, error.message, error.statusCode);
-      } else {
-        sendError(res, 'Internal server error', 500);
-      }
-    }
-  },
-
-  async getCompatibilityScore(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const { candidateId, startupId } = req.body;
-
-      if (!candidateId || !startupId) {
-        sendError(res, 'candidateId and startupId required', 400);
-        return;
-      }
-
-      // Get profiles
-      const candidate = await profileService.getCandidateProfile(candidateId);
-      const startup = await profileService.getStartupProfile(startupId);
-
-      // Calculate compatibility
-      const score = await aiService.scoreCompatibilityDeep(candidate, startup);
-
-      sendSuccess(res, score, 200);
-    } catch (error) {
-      if (error instanceof HttpError) {
-        sendError(res, error.message, error.statusCode);
-      } else {
-        sendError(res, 'Internal server error', 500);
-      }
-    }
-  },
-
-  async generateSummary(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const { candidateId, startupId } = req.body;
-
-      if (!candidateId || !startupId) {
-        sendError(res, 'candidateId and startupId required', 400);
-        return;
-      }
-
-      const summary = await aiService.generateSummary(candidateId, startupId);
-
-      sendSuccess(res, { summary }, 200);
     } catch (error) {
       if (error instanceof HttpError) {
         sendError(res, error.message, error.statusCode);
@@ -124,9 +117,12 @@ export const matchingController = {
         return;
       }
 
-      const match = await matchingService.updateMatchStatus(matchId, status);
-
-      sendSuccess(res, match, 200);
+      // For now, just return success since we're not storing matches in DB
+      sendSuccess(res, {
+        id: matchId,
+        status,
+        updated_at: new Date().toISOString(),
+      }, 200);
     } catch (error) {
       if (error instanceof HttpError) {
         sendError(res, error.message, error.statusCode);
