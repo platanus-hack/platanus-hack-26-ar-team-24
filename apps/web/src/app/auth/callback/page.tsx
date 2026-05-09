@@ -1,13 +1,19 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { api } from '@/lib/api'
+import Logo from '@/components/layout/Logo'
+
+type Status = 'pending' | 'error'
 
 export default function CallbackPage() {
   const router = useRouter()
   const calledRef = useRef(false)
+  const [status, setStatus] = useState<Status>('pending')
 
   useEffect(() => {
     if (calledRef.current) return
@@ -15,37 +21,32 @@ export default function CallbackPage() {
 
     const handleCallback = async () => {
       try {
-        // Small delay to ensure URL params are processed
-        await new Promise(resolve => setTimeout(resolve, 500))
+        // Give Supabase a moment to process the URL fragment
+        await new Promise((resolve) => setTimeout(resolve, 500))
 
         const { data, error } = await supabase.auth.getSession()
 
         if (error || !data.session) {
           console.error('No session:', error)
-          window.location.href = '/auth'
+          setStatus('error')
           return
         }
 
-        // Store the token for API calls
         const token = data.session.access_token
-        console.log('✅ Got token from Supabase')
         api.setToken(token)
 
-        // Store in localStorage
         if (typeof window !== 'undefined') {
           localStorage.setItem('auth_token', token)
           localStorage.setItem('user_id', data.session.user.id)
-          console.log('✅ Token stored in localStorage')
         }
 
-        // Wait a moment for storage to complete
-        await new Promise(resolve => setTimeout(resolve, 200))
+        // Small buffer so storage settles before navigating
+        await new Promise((resolve) => setTimeout(resolve, 200))
 
-        console.log('✅ Redirecting to sync...')
-        window.location.href = '/onboarding/sync'
+        router.replace('/onboarding/sync')
       } catch (err) {
         console.error('Callback error:', err)
-        window.location.href = '/auth'
+        setStatus('error')
       }
     }
 
@@ -53,10 +54,67 @@ export default function CallbackPage() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto"></div>
-        <p className="mt-4 text-slate-300">Signing you in...</p>
+    <div className="min-h-screen bg-ink-950 text-white relative overflow-hidden flex items-center justify-center px-6">
+      <div
+        className="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+        style={{
+          background:
+            'radial-gradient(ellipse at 30% 20%, rgba(168,85,247,0.18), transparent 55%), radial-gradient(ellipse at 70% 80%, rgba(6,182,212,0.12), transparent 55%)',
+        }}
+      />
+
+      <div className="absolute top-6 left-6">
+        <Logo href="/landing" />
+      </div>
+
+      <div className="relative w-full max-w-md text-center">
+        {status === 'pending' ? (
+          <>
+            <div className="relative inline-flex items-center justify-center mb-8">
+              <div
+                className="absolute w-24 h-24 rounded-full"
+                aria-hidden="true"
+                style={{
+                  background: 'radial-gradient(circle at 30% 30%, #a78bfa, transparent 70%)',
+                  filter: 'blur(2px)',
+                }}
+              />
+              <div className="relative w-12 h-12 rounded-full border border-white/10 bg-white/[0.04] flex items-center justify-center">
+                <Loader2 size={18} className="animate-spin text-white" />
+              </div>
+            </div>
+
+            <p className="text-xs font-mono text-zinc-500 mb-3 tracking-wider uppercase">
+              Conectando
+            </p>
+            <h1 className="font-serif text-3xl sm:text-4xl mb-3 leading-tight">
+              Sincronizando tu<br />
+              <span className="italic text-zinc-300">identidad.</span>
+            </h1>
+            <p className="text-zinc-400 text-sm">
+              Tu agente está leyendo lo que ya está disponible. Un segundo.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-xs font-mono text-red-300/80 mb-3 tracking-wider uppercase">
+              Sesión no detectada
+            </p>
+            <h1 className="font-serif text-3xl sm:text-4xl mb-3 leading-tight">
+              No pudimos cerrar el ingreso.
+            </h1>
+            <p className="text-zinc-400 text-sm mb-8">
+              El proveedor no devolvió una sesión válida. Intentá de nuevo desde la pantalla de acceso.
+            </p>
+            <Link
+              href="/auth"
+              className="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-white text-black text-sm font-medium hover:bg-zinc-200 transition-colors min-h-[48px]"
+            >
+              Volver a acceder
+            </Link>
+          </>
+        )}
       </div>
     </div>
   )
