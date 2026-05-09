@@ -2,18 +2,20 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { api } from '@/lib/api'
+import { setAgentSession } from '@/lib/agent-session'
 
 export default function StartupOnboarding() {
   const router = useRouter()
-
   const [formData, setFormData] = useState({
-    name: '',
+    startupName: '',
+    founderName: '',
+    location: '',
     description: '',
     stack: [] as string[],
-    culture_values: [] as string[],
+    cultureValues: [] as string[],
+    hiringGoal: '',
   })
-
   const [stackInput, setStackInput] = useState('')
   const [cultureInput, setCultureInput] = useState('')
   const [error, setError] = useState('')
@@ -27,43 +29,27 @@ export default function StartupOnboarding() {
     }))
   }
 
-  const addStack = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      if (stackInput.trim()) {
-        setFormData(prev => ({
-          ...prev,
-          stack: [...prev.stack, stackInput.trim()],
-        }))
-        setStackInput('')
-      }
-    }
-  }
+  const addTag = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    input: string,
+    key: 'stack' | 'cultureValues',
+    clear: () => void
+  ) => {
+    if (event.key !== 'Enter') return
+    event.preventDefault()
+    if (!input.trim()) return
 
-  const removeStack = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      stack: prev.stack.filter((_, i) => i !== index),
+      [key]: [...prev[key], input.trim()],
     }))
+    clear()
   }
 
-  const addCulture = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      if (cultureInput.trim()) {
-        setFormData(prev => ({
-          ...prev,
-          culture_values: [...prev.culture_values, cultureInput.trim()],
-        }))
-        setCultureInput('')
-      }
-    }
-  }
-
-  const removeCulture = (index: number) => {
+  const removeTag = (key: 'stack' | 'cultureValues', index: number) => {
     setFormData(prev => ({
       ...prev,
-      culture_values: prev.culture_values.filter((_, i) => i !== index),
+      [key]: prev[key].filter((_, i) => i !== index),
     }))
   }
 
@@ -71,108 +57,55 @@ export default function StartupOnboarding() {
     e.preventDefault()
     setError('')
 
-    if (!formData.name.trim()) {
-      setError('Startup name is required')
+    if (!formData.startupName.trim()) {
+      setError('El nombre de la startup es obligatorio.')
       return
     }
 
-    if (!formData.description.trim()) {
-      setError('Description is required')
-      return
-    }
-
-    if (formData.description.length < 20) {
-      setError('Description must be at least 20 characters')
+    if (!formData.description.trim() || formData.description.trim().length < 20) {
+      setError('La descripción debe tener al menos 20 caracteres.')
       return
     }
 
     if (formData.stack.length === 0) {
-      setError('Add at least one technology to your stack')
+      setError('Agregá al menos una tecnología o capability clave.')
       return
     }
 
     setLoading(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      const response = await api.createAgent({
+        name: formData.startupName.trim(),
+        location: formData.location || undefined,
+        bio: formData.description.trim(),
+        personal: {
+          values: formData.cultureValues,
+        },
+        social: {
+          communicationStyle: 'directa y orientada a ejecución',
+        },
+        professional: {
+          role: 'Founder',
+          skills: formData.stack,
+        },
+        extra: {
+          startupName: formData.startupName.trim(),
+          founderName: formData.founderName || undefined,
+          hiringGoal: formData.hiringGoal || undefined,
+        },
+      })
 
-      console.log('Creating startup profile for user:', user.id)
+      setAgentSession({
+        activeAgentId: response.agent.id,
+        activeAgentName: formData.startupName.trim(),
+        role: 'founder',
+        grading: response.grading,
+      })
 
-      // First, ensure the user exists in public.users
-      const username = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'user'
-
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      if (!existingUser) {
-        console.log('Creating user record in public.users')
-        const { error: userError } = await supabase
-          .from('users')
-          .insert([{
-            id: user.id,
-            email: user.email,
-            username: username,
-            user_type: 'founder',
-            password_hash: 'oauth_user',
-          }])
-
-        if (userError) {
-          console.error('User insert error:', userError)
-          throw userError
-        }
-      }
-
-      const profileData = {
-        user_id: user.id,
-        name: formData.name,
-        description: formData.description,
-        stack: formData.stack,
-        culture_values: formData.culture_values,
-      }
-
-      console.log('Profile data:', profileData)
-
-      // Check if profile already exists
-      const { data: existing } = await supabase
-        .from('startup_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      console.log('Existing profile:', existing)
-
-      let result
-      if (existing) {
-        console.log('Updating existing profile')
-        result = await supabase
-          .from('startup_profiles')
-          .update(profileData)
-          .eq('user_id', user.id)
-          .select()
-      } else {
-        console.log('Inserting new profile')
-        result = await supabase
-          .from('startup_profiles')
-          .insert([profileData])
-          .select()
-      }
-
-      console.log('Save result:', result)
-
-      if (result.error) {
-        console.error('Save error details:', result.error)
-        throw result.error
-      }
-
-      console.log('✅ Startup profile saved! Redirecting...')
       router.push('/dashboard/founder')
-    } catch (err: any) {
-      console.error('Full error:', err)
-      setError(err.message || 'Failed to create startup profile')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No pudimos crear tu agente.')
       setLoading(false)
     }
   }
@@ -182,9 +115,9 @@ export default function StartupOnboarding() {
       <div className="max-w-2xl mx-auto px-4 py-12">
         <div className="bg-slate-800/50 border border-pink-500/30 rounded-2xl p-8">
           <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
-            Create Your Startup Profile
+            Creá tu agente de startup
           </h1>
-          <p className="text-slate-400 mb-8">Tell us about your vision and what you're looking for in team members</p>
+          <p className="text-slate-400 mb-8">El backend perfila la startup y devuelve un `agentId` reutilizable para matchmaking.</p>
 
           {error && (
             <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
@@ -193,97 +126,128 @@ export default function StartupOnboarding() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Startup Name */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Startup</label>
+                <input
+                  name="startupName"
+                  value={formData.startupName}
+                  onChange={handleChange}
+                  placeholder="AgentLink"
+                  className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Founder</label>
+                <input
+                  name="founderName"
+                  value={formData.founderName}
+                  onChange={handleChange}
+                  placeholder="Matías"
+                  className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="block text-sm font-medium mb-2">Startup Name</label>
+              <label className="block text-sm font-medium mb-2">Ubicación</label>
               <input
-                type="text"
-                name="name"
-                value={formData.name}
+                name="location"
+                value={formData.location}
                 onChange={handleChange}
-                placeholder="e.g., TechAI Inc"
+                placeholder="Buenos Aires"
                 className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
               />
             </div>
 
-            {/* Description */}
             <div>
-              <label className="block text-sm font-medium mb-2">What does your startup do?</label>
+              <label className="block text-sm font-medium mb-2">Descripción</label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Describe your startup's mission, what problems you solve, and your vision for the future..."
                 rows={5}
+                placeholder="Qué problema resuelven, a quién le venden y qué tipo de equipo quieren formar."
                 className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 resize-none"
               />
-              <p className="text-xs text-slate-500 mt-1">{formData.description.length} characters (min 20)</p>
             </div>
 
-            {/* Tech Stack */}
+            <TagInput
+              label="Stack o capacidades"
+              value={stackInput}
+              setValue={setStackInput}
+              onKeyDown={(event) => addTag(event, stackInput, 'stack', () => setStackInput(''))}
+              items={formData.stack}
+              onRemove={(index) => removeTag('stack', index)}
+            />
+
+            <TagInput
+              label="Valores culturales"
+              value={cultureInput}
+              setValue={setCultureInput}
+              onKeyDown={(event) => addTag(event, cultureInput, 'cultureValues', () => setCultureInput(''))}
+              items={formData.cultureValues}
+              onRemove={(index) => removeTag('cultureValues', index)}
+            />
+
             <div>
-              <label className="block text-sm font-medium mb-2">Technology Stack (Press Enter to add)</label>
+              <label className="block text-sm font-medium mb-2">Qué buscás contratar</label>
               <input
-                type="text"
-                value={stackInput}
-                onChange={(e) => setStackInput(e.target.value)}
-                onKeyDown={addStack}
-                placeholder="e.g., React, Node.js, PostgreSQL..."
+                name="hiringGoal"
+                value={formData.hiringGoal}
+                onChange={handleChange}
+                placeholder="Founding engineer con foco en AI recruiting"
                 className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
               />
-              <div className="flex flex-wrap gap-2 mt-3">
-                {formData.stack.map((tech, i) => (
-                  <span key={i} className="px-3 py-1 bg-pink-600 rounded-full text-sm flex items-center gap-2">
-                    {tech}
-                    <button
-                      type="button"
-                      onClick={() => removeStack(i)}
-                      className="hover:text-red-300"
-                    >
-                      ✕
-                    </button>
-                  </span>
-                ))}
-              </div>
             </div>
 
-            {/* Culture Values */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Culture Values (Press Enter to add)</label>
-              <input
-                type="text"
-                value={cultureInput}
-                onChange={(e) => setCultureInput(e.target.value)}
-                onKeyDown={addCulture}
-                placeholder="e.g., Innovation, Collaboration, Transparency..."
-                className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
-              />
-              <div className="flex flex-wrap gap-2 mt-3">
-                {formData.culture_values.map((value, i) => (
-                  <span key={i} className="px-3 py-1 bg-purple-600 rounded-full text-sm flex items-center gap-2">
-                    {value}
-                    <button
-                      type="button"
-                      onClick={() => removeCulture(i)}
-                      className="hover:text-red-300"
-                    >
-                      ✕
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 disabled:opacity-50 rounded-lg font-semibold transition-all mt-8"
+              className="w-full py-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 disabled:opacity-50 rounded-lg font-semibold transition-all"
             >
-              {loading ? 'Creating Startup Profile...' : 'Create Startup Profile'}
+              {loading ? 'Creando agente...' : 'Crear agente'}
             </button>
           </form>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function TagInput({
+  label,
+  value,
+  setValue,
+  onKeyDown,
+  items,
+  onRemove,
+}: {
+  label: string
+  value: string
+  setValue: (value: string) => void
+  onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void
+  items: string[]
+  onRemove: (index: number) => void
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-2">{label} (Enter para agregar)</label>
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={onKeyDown}
+        className="w-full px-4 py-2 bg-slate-700 border border-pink-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-pink-500"
+      />
+      <div className="flex flex-wrap gap-2 mt-3">
+        {items.map((item, index) => (
+          <span key={`${label}-${item}-${index}`} className="px-3 py-1 bg-pink-600 rounded-full text-sm flex items-center gap-2">
+            {item}
+            <button type="button" onClick={() => onRemove(index)} className="hover:text-red-300">
+              x
+            </button>
+          </span>
+        ))}
       </div>
     </div>
   )

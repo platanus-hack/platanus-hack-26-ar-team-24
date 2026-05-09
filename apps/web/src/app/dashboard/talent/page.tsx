@@ -1,59 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { getAgentSession } from '@/lib/agent-session'
+import type { AgentSession } from '@/lib/agent-session'
 
 export default function TalentDashboard() {
   const router = useRouter()
+  const [session, setSession] = useState<AgentSession | null>(null)
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
-  const [profileData, setProfileData] = useState<any>(null)
-  const [hasProfile, setHasProfile] = useState(true)
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
+    const activeSession = getAgentSession()
 
-        if (!session) {
-          router.push('/auth')
-          return
-        }
-
-        setUser(session.user)
-
-        // Load candidate profile from Supabase
-        const { data: profile, error } = await supabase
-          .from('candidate_profiles')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single()
-
-        if (error || !profile) {
-          setHasProfile(false)
-        } else {
-          setProfileData(profile)
-          setHasProfile(true)
-        }
-      } catch (err) {
-        console.error('Error loading dashboard:', err)
-        setHasProfile(false)
-      } finally {
-        setLoading(false)
-      }
+    if (!activeSession || activeSession.role !== 'talent') {
+      router.replace('/onboarding/candidate')
+      return
     }
 
-    loadData()
+    setSession(activeSession)
+    setLoading(false)
   }, [router])
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
-
-  if (loading) {
+  if (loading || !session) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
@@ -61,124 +31,91 @@ export default function TalentDashboard() {
     )
   }
 
-  if (!hasProfile) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
-        <div className="max-w-2xl w-full">
-          <div className="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-6 text-center">
-            <h2 className="text-xl font-bold mb-4">Complete Your Profile First</h2>
-            <p className="text-slate-400 mb-6">Create your candidate profile to get matched with startups looking for talent like you.</p>
-            <Link href="/onboarding/candidate" className="inline-block px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg">
-              Create Candidate Profile
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  const username = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0]
+  const grading = session.grading
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center gap-6 flex-wrap">
           <div>
             <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
-              Welcome, {username}!
+              {session.activeAgentName}
             </h1>
-            <p className="text-slate-400">Your profile is live and founders can now see you in AI-powered matching</p>
+            <p className="text-slate-400">Tu agente quedó creado y ya puede participar en conversaciones y matchmaking.</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
-          >
-            Logout
-          </button>
+          <div className="px-4 py-2 rounded-lg bg-slate-800/60 border border-purple-500/20 text-sm text-slate-300">
+            Agent ID: <span className="font-mono text-white">{session.activeAgentId}</span>
+          </div>
         </div>
 
-        {/* Profile Summary */}
-        {profileData && (
-          <div className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-8">
-            <h2 className="text-2xl font-bold mb-6">Your Profile</h2>
+        {grading && (
+          <div className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-8 space-y-6">
+            <h2 className="text-2xl font-bold">Perfil generado por el backend</h2>
+            <p className="text-slate-300">{grading.summary}</p>
+            <p className="text-slate-400">{grading.personalitySummary}</p>
 
-            <div className="space-y-6">
-              {/* Bio */}
-              <div>
-                <h3 className="font-semibold text-purple-400 mb-2">About You</h3>
-                <p className="text-slate-300">{profileData.bio}</p>
-              </div>
-
-              {/* Experience */}
-              <div>
-                <h3 className="font-semibold text-purple-400 mb-2">Experience</h3>
-                <p className="text-slate-300">{profileData.experience_years} years</p>
-              </div>
-
-              {/* Skills */}
-              {profileData.skills && profileData.skills.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-purple-400 mb-3">Skills</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {profileData.skills.map((skill: string, i: number) => (
-                      <span key={i} className="px-3 py-1 bg-purple-600 rounded-full text-sm">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Technologies */}
-              {profileData.technologies && profileData.technologies.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-purple-400 mb-3">Technologies</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {profileData.technologies.map((tech: string, i: number) => (
-                      <span key={i} className="px-3 py-1 bg-pink-600 rounded-full text-sm">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Links */}
-              <div className="flex gap-4">
-                {profileData.github_url && (
-                  <a
-                    href={profileData.github_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
-                  >
-                    GitHub
-                  </a>
-                )}
-                {profileData.linkedin_url && (
-                  <a
-                    href={profileData.linkedin_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
-                  >
-                    LinkedIn
-                  </a>
-                )}
-              </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <Metric label="Overall" value={grading.overallScore} />
+              <Metric label="Personal" value={grading.personalScore} />
+              <Metric label="Social" value={grading.socialScore} />
+              <Metric label="Professional" value={grading.professionalScore} />
             </div>
+
+            <TagSection label="Fortalezas" items={grading.strengths} tone="purple" />
+            <TagSection label="Intereses" items={grading.interests} tone="pink" />
+            <TagSection label="Valores" items={grading.values} tone="slate" />
+
+            {grading.risks.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-red-300 mb-3">Riesgos detectados</h3>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  {grading.risks.map((risk) => (
+                    <li key={risk}>• {risk}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Waiting for Matches */}
-        <div className="text-center py-12 bg-slate-800/30 border border-purple-500/20 rounded-xl">
-          <div className="text-6xl mb-4">✨</div>
-          <h3 className="text-xl font-bold mb-2">Waiting for Matches</h3>
-          <p className="text-slate-400">
-            Founders are using our AI agents to find talent. When a founder's AI agent finds you're a match, you'll be notified!
-          </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link href="/arena" className="rounded-xl border border-purple-500/30 bg-slate-800/40 p-6 hover:border-purple-400 transition-colors">
+            <h3 className="text-lg font-semibold text-white mb-2">Abrir Arena</h3>
+            <p className="text-sm text-slate-400">Elegí otro agente y corré una conversación real contra el backend.</p>
+          </Link>
+          <Link href="/dashboard" className="rounded-xl border border-pink-500/30 bg-slate-800/40 p-6 hover:border-pink-400 transition-colors">
+            <h3 className="text-lg font-semibold text-white mb-2">Ver dashboard general</h3>
+            <p className="text-sm text-slate-400">Revisá el resumen sintético de personalidad generado para tu agente.</p>
+          </Link>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function Metric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-slate-900/40 p-4">
+      <div className="text-xs uppercase tracking-wider text-slate-500 mb-2">{label}</div>
+      <div className="text-2xl font-bold text-white">{Math.round(value * 100)}%</div>
+    </div>
+  )
+}
+
+function TagSection({ label, items, tone }: { label: string; items: string[]; tone: 'purple' | 'pink' | 'slate' }) {
+  const toneClass = tone === 'pink' ? 'bg-pink-600/30' : tone === 'slate' ? 'bg-slate-700/70' : 'bg-purple-600/30'
+
+  if (items.length === 0) return null
+
+  return (
+    <div>
+      <h3 className="font-semibold text-slate-200 mb-3">{label}</h3>
+      <div className="flex flex-wrap gap-2">
+        {items.map((item) => (
+          <span key={item} className={`px-3 py-1 rounded-full text-sm text-white ${toneClass}`}>
+            {item}
+          </span>
+        ))}
       </div>
     </div>
   )

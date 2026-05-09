@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { api } from '@/lib/api'
 import Logo from '@/components/layout/Logo'
 
 type Status = 'pending' | 'error'
@@ -32,11 +31,8 @@ export default function CallbackPage() {
           return
         }
 
-        const token = data.session.access_token
-        api.setToken(token)
-
         if (typeof window !== 'undefined') {
-          localStorage.setItem('auth_token', token)
+          localStorage.setItem('auth_token', data.session.access_token)
           localStorage.setItem('user_id', data.session.user.id)
         }
 

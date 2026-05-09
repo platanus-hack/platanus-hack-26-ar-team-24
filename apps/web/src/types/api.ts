@@ -1,105 +1,134 @@
-// Auth Types
-export interface AuthResponse {
-  success: boolean
-  data: {
-    token: string
-    user: User
-  }
-  error: string | null
-  timestamp: string
+export type ThinkingLevel = 'off' | 'minimal' | 'low' | 'medium' | 'high'
+
+export type AgentRole = 'talent' | 'founder'
+
+export interface AgentListResponse {
+  agents: Array<{ id: string }>
 }
 
-export interface User {
-  id: string
-  email: string
-  username: string
-  user_type: 'talent' | 'founder'
-  created_at: string
-  updated_at: string
-}
-
-// Candidate Profile Types
-export interface CandidateProfile {
-  id: string
-  user_id: string
-  bio: string
-  skills: string[]
-  experience_years: number
-  technologies: string[]
-  github_url: string
-  linkedin_url: string
-  ai_agent: string | null
-  created_at: string
-  updated_at: string
-}
-
-export interface CandidateProfileInput {
-  bio: string
-  skills: string[]
-  experience_years: number
-  technologies: string[]
-  github_url: string
-  linkedin_url: string
-}
-
-// Startup Profile Types
-export interface StartupProfile {
-  id: string
-  user_id: string
+export interface UserProfilePayload {
   name: string
-  description: string
-  stack: string[]
-  culture_values: string[]
-  recruiter_agent: string | null
-  created_at: string
-  updated_at: string
+  age?: string | number
+  location?: string
+  bio?: string
+  personal?: Record<string, unknown>
+  social?: Record<string, unknown>
+  professional?: Record<string, unknown>
+  extra?: Record<string, unknown>
 }
 
-export interface StartupProfileInput {
-  name: string
-  description: string
-  stack: string[]
-  culture_values: string[]
-}
-
-// Match Types
-export interface Match {
-  id: string
-  candidate_id: string
-  startup_id: string
-  match_score: number
+export interface GradingProfile {
+  overallScore: number
+  personalScore: number
+  socialScore: number
+  professionalScore: number
   summary: string
+  personalitySummary: string
+  strengths: string[]
+  risks: string[]
+  interests: string[]
+  conversationStyle: string
+  values: string[]
+}
+
+export interface CreateAgentResponse {
+  agent: {
+    id: string
+  }
+  grading: GradingProfile
+}
+
+export interface AgentFilesResponse {
+  agentId: string
+  workspace: string
+  files: Record<string, string>
+}
+
+export interface ConversationRequest {
+  agentA: string
+  agentB: string
+  openingMessage: string
+  turnsPerAgent?: number
+  maxRounds?: number
+  thinking?: ThinkingLevel
+}
+
+export interface TranscriptMessage {
+  speaker: string
+  text: string
+  round: number
+  turn: number
+}
+
+export interface CompatibilityDecision {
+  done: boolean
+  score: number
+  outcome: 'match' | 'no_match' | 'continue'
+  summary: string
+  sharedInterests: string[]
   reasons: string[]
-  status: 'pending' | 'accepted' | 'rejected'
+}
+
+export interface ConversationResponse {
+  conversationId: string
+  agentA: string
+  agentB: string
+  turnsPerAgent: number
+  maxRounds: number
+  judgeAgentId: string
+  compatibility: CompatibilityDecision
+  transcript: TranscriptMessage[]
+}
+
+export interface StoredConversation {
+  id: string
+  owner_user_id: string
+  agent_a_id: string
+  agent_b_id: string
+  judge_agent_id: string
+  opening_message: string
+  turns_per_agent: number
+  max_rounds: number
+  status: 'match' | 'no_match' | 'continue'
+  compatibility: CompatibilityDecision
+  transcript: TranscriptMessage[]
+  transcript_preview: string
   created_at: string
   updated_at: string
 }
 
-export interface MatchRunResponse {
-  success: boolean
-  data: {
-    startup_id: string
-    matches_count: number
-    matches: Match[]
-  }
-  error: string | null
-  timestamp: string
+export interface ConversationsListResponse {
+  conversations: StoredConversation[]
 }
 
-export interface MatchResultsResponse {
-  success: boolean
-  data: {
-    matches: Match[]
-  }
-  error: string | null
-  timestamp: string
+export interface ConversationDetailResponse {
+  conversation: StoredConversation
 }
 
-// Generic API Response
-export interface ApiResponse<T> {
-  success: boolean
-  data: T | null
-  error: string | null
-  details?: Record<string, string>
-  timestamp: string
+export interface MatchmakeRequest {
+  purpose: string
+  turnsPerAgent?: number
+  maxRounds?: number
+  thinking?: ThinkingLevel
+  limit?: number
+  minScore?: number
+}
+
+export interface MatchmakeResult {
+  candidateId: string
+  conversationId: string
+  compatibility: CompatibilityDecision
+  transcript: TranscriptMessage[]
+}
+
+export interface MatchmakeResponse {
+  agentId: string
+  purpose: string
+  evaluatedCandidates: number
+  returnedMatches: number
+  matches: MatchmakeResult[]
+  failures: Array<{
+    candidateId: string
+    error: string
+  }>
 }

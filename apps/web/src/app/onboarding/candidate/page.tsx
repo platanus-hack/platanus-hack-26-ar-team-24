@@ -2,22 +2,27 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { api } from '@/lib/api'
+import { setAgentSession } from '@/lib/agent-session'
 
 export default function CandidateOnboarding() {
   const router = useRouter()
-
   const [formData, setFormData] = useState({
+    name: '',
+    age: '',
+    location: '',
     bio: '',
     skills: [] as string[],
-    experience_years: 0,
+    experienceYears: 0,
     technologies: [] as string[],
-    github_url: '',
-    linkedin_url: '',
+    githubUrl: '',
+    linkedinUrl: '',
+    values: [] as string[],
+    communicationStyle: '',
   })
-
   const [skillInput, setSkillInput] = useState('')
   const [techInput, setTechInput] = useState('')
+  const [valueInput, setValueInput] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -25,47 +30,31 @@ export default function CandidateOnboarding() {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'experience_years' ? parseInt(value) : value,
+      [name]: name === 'experienceYears' ? parseInt(value, 10) : value,
     }))
   }
 
-  const addSkill = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      if (skillInput.trim()) {
-        setFormData(prev => ({
-          ...prev,
-          skills: [...prev.skills, skillInput.trim()],
-        }))
-        setSkillInput('')
-      }
-    }
-  }
+  const addTag = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    input: string,
+    key: 'skills' | 'technologies' | 'values',
+    clear: () => void
+  ) => {
+    if (event.key !== 'Enter') return
+    event.preventDefault()
+    if (!input.trim()) return
 
-  const removeSkill = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      skills: prev.skills.filter((_, i) => i !== index),
+      [key]: [...prev[key], input.trim()],
     }))
+    clear()
   }
 
-  const addTechnology = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      if (techInput.trim()) {
-        setFormData(prev => ({
-          ...prev,
-          technologies: [...prev.technologies, techInput.trim()],
-        }))
-        setTechInput('')
-      }
-    }
-  }
-
-  const removeTechnology = (index: number) => {
+  const removeTag = (key: 'skills' | 'technologies' | 'values', index: number) => {
     setFormData(prev => ({
       ...prev,
-      technologies: prev.technologies.filter((_, i) => i !== index),
+      [key]: prev[key].filter((_, i) => i !== index),
     }))
   }
 
@@ -73,105 +62,57 @@ export default function CandidateOnboarding() {
     e.preventDefault()
     setError('')
 
-    if (!formData.bio.trim()) {
-      setError('Bio is required')
+    if (!formData.name.trim()) {
+      setError('Tu nombre es obligatorio.')
       return
     }
 
-    if (formData.bio.length < 10) {
-      setError('Bio must be at least 10 characters')
+    if (!formData.bio.trim() || formData.bio.trim().length < 10) {
+      setError('La bio debe tener al menos 10 caracteres.')
       return
     }
 
     if (formData.skills.length === 0) {
-      setError('Add at least one skill')
+      setError('Agregá al menos una skill.')
       return
     }
 
     setLoading(true)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      const response = await api.createAgent({
+        name: formData.name.trim(),
+        age: formData.age || undefined,
+        location: formData.location || undefined,
+        bio: formData.bio.trim(),
+        personal: {
+          values: formData.values,
+        },
+        social: {
+          communicationStyle: formData.communicationStyle || 'directa y colaborativa',
+        },
+        professional: {
+          role: 'Talent',
+          skills: formData.skills,
+          experienceYears: formData.experienceYears,
+          technologies: formData.technologies,
+        },
+        extra: {
+          githubUrl: formData.githubUrl || undefined,
+          linkedinUrl: formData.linkedinUrl || undefined,
+        },
+      })
 
-      console.log('Creating profile for user:', user.id)
+      setAgentSession({
+        activeAgentId: response.agent.id,
+        activeAgentName: formData.name.trim(),
+        role: 'talent',
+        grading: response.grading,
+      })
 
-      // First, ensure the user exists in public.users
-      const username = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'user'
-
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      if (!existingUser) {
-        console.log('Creating user record in public.users')
-        const { error: userError } = await supabase
-          .from('users')
-          .insert([{
-            id: user.id,
-            email: user.email,
-            username: username,
-            user_type: 'talent',
-            password_hash: 'oauth_user',
-          }])
-
-        if (userError) {
-          console.error('User insert error:', userError)
-          throw userError
-        }
-      }
-
-      const profileData = {
-        user_id: user.id,
-        bio: formData.bio,
-        skills: formData.skills,
-        experience_years: formData.experience_years,
-        technologies: formData.technologies,
-        github_url: formData.github_url,
-        linkedin_url: formData.linkedin_url,
-      }
-
-      console.log('Profile data:', profileData)
-
-      // Check if profile already exists
-      const { data: existing } = await supabase
-        .from('candidate_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      console.log('Existing profile:', existing)
-
-      let result
-      if (existing) {
-        console.log('Updating existing profile')
-        result = await supabase
-          .from('candidate_profiles')
-          .update(profileData)
-          .eq('user_id', user.id)
-          .select()
-      } else {
-        console.log('Inserting new profile')
-        result = await supabase
-          .from('candidate_profiles')
-          .insert([profileData])
-          .select()
-      }
-
-      console.log('Save result:', result)
-
-      if (result.error) {
-        console.error('Save error details:', result.error)
-        throw result.error
-      }
-
-      console.log('✅ Profile saved! Redirecting...')
       router.push('/dashboard/talent')
-    } catch (err: any) {
-      console.error('Full error:', err)
-      setError(err.message || 'Failed to create profile')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No pudimos crear tu agente.')
       setLoading(false)
     }
   }
@@ -181,9 +122,9 @@ export default function CandidateOnboarding() {
       <div className="max-w-2xl mx-auto px-4 py-12">
         <div className="bg-slate-800/50 border border-purple-500/30 rounded-2xl p-8">
           <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
-            Create Your Profile
+            Creá tu agente profesional
           </h1>
-          <p className="text-slate-400 mb-8">Tell us about yourself to get matched with the perfect startup</p>
+          <p className="text-slate-400 mb-8">Este formulario se envía directo al backend para perfilarte y generar tu `agentId`.</p>
 
           {error && (
             <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg text-red-300 text-sm">
@@ -192,127 +133,189 @@ export default function CandidateOnboarding() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Bio */}
             <div>
-              <label className="block text-sm font-medium mb-2">About You</label>
+              <label className="block text-sm font-medium mb-2">Nombre</label>
+              <input
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Sofía"
+                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Edad</label>
+                <input
+                  name="age"
+                  value={formData.age}
+                  onChange={handleChange}
+                  placeholder="28"
+                  className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Ubicación</label>
+                <input
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  placeholder="Buenos Aires"
+                  className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Bio</label>
               <textarea
                 name="bio"
                 value={formData.bio}
                 onChange={handleChange}
-                placeholder="Describe your professional background, interests, and what you're looking for in a startup..."
                 rows={4}
+                placeholder="Contá qué hacés, qué te interesa y qué tipo de startup querés construir."
                 className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none"
               />
-              <p className="text-xs text-slate-500 mt-1">{formData.bio.length} characters</p>
             </div>
 
-            {/* Experience Years */}
             <div>
-              <label className="block text-sm font-medium mb-2">Years of Experience</label>
+              <label className="block text-sm font-medium mb-2">Años de experiencia</label>
               <select
-                name="experience_years"
-                value={formData.experience_years}
+                name="experienceYears"
+                value={formData.experienceYears}
                 onChange={handleChange}
                 className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:border-purple-500"
               >
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20].map(year => (
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 15].map(year => (
                   <option key={year} value={year}>
-                    {year === 0 ? 'No experience' : `${year}+ years`}
+                    {year === 0 ? 'Sin experiencia' : `${year}+ años`}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Skills */}
+            <TagInput
+              label="Skills"
+              value={skillInput}
+              setValue={setSkillInput}
+              onKeyDown={(event) => addTag(event, skillInput, 'skills', () => setSkillInput(''))}
+              items={formData.skills}
+              onRemove={(index) => removeTag('skills', index)}
+              placeholder="React, Product, Sales..."
+              tone="purple"
+            />
+
+            <TagInput
+              label="Tecnologías"
+              value={techInput}
+              setValue={setTechInput}
+              onKeyDown={(event) => addTag(event, techInput, 'technologies', () => setTechInput(''))}
+              items={formData.technologies}
+              onRemove={(index) => removeTag('technologies', index)}
+              placeholder="TypeScript, Node.js, LLMs..."
+              tone="pink"
+            />
+
+            <TagInput
+              label="Valores"
+              value={valueInput}
+              setValue={setValueInput}
+              onKeyDown={(event) => addTag(event, valueInput, 'values', () => setValueInput(''))}
+              items={formData.values}
+              onRemove={(index) => removeTag('values', index)}
+              placeholder="Honestidad, autonomía..."
+              tone="violet"
+            />
+
             <div>
-              <label className="block text-sm font-medium mb-2">Skills (Press Enter to add)</label>
+              <label className="block text-sm font-medium mb-2">Estilo de comunicación</label>
               <input
-                type="text"
-                value={skillInput}
-                onChange={(e) => setSkillInput(e.target.value)}
-                onKeyDown={addSkill}
-                placeholder="e.g., React, Node.js, Python..."
+                name="communicationStyle"
+                value={formData.communicationStyle}
+                onChange={handleChange}
+                placeholder="Directa pero cálida"
                 className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
               />
-              <div className="flex flex-wrap gap-2 mt-3">
-                {formData.skills.map((skill, i) => (
-                  <span key={i} className="px-3 py-1 bg-purple-600 rounded-full text-sm flex items-center gap-2">
-                    {skill}
-                    <button
-                      type="button"
-                      onClick={() => removeSkill(i)}
-                      className="hover:text-red-300"
-                    >
-                      ✕
-                    </button>
-                  </span>
-                ))}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">GitHub</label>
+                <input
+                  name="githubUrl"
+                  value={formData.githubUrl}
+                  onChange={handleChange}
+                  placeholder="https://github.com/..."
+                  className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">LinkedIn</label>
+                <input
+                  name="linkedinUrl"
+                  value={formData.linkedinUrl}
+                  onChange={handleChange}
+                  placeholder="https://linkedin.com/in/..."
+                  className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                />
               </div>
             </div>
 
-            {/* Technologies */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Technologies (Press Enter to add)</label>
-              <input
-                type="text"
-                value={techInput}
-                onChange={(e) => setTechInput(e.target.value)}
-                onKeyDown={addTechnology}
-                placeholder="e.g., TypeScript, PostgreSQL, AWS..."
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
-              />
-              <div className="flex flex-wrap gap-2 mt-3">
-                {formData.technologies.map((tech, i) => (
-                  <span key={i} className="px-3 py-1 bg-pink-600 rounded-full text-sm flex items-center gap-2">
-                    {tech}
-                    <button
-                      type="button"
-                      onClick={() => removeTechnology(i)}
-                      className="hover:text-red-300"
-                    >
-                      ✕
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* GitHub URL */}
-            <div>
-              <label className="block text-sm font-medium mb-2">GitHub URL (Optional)</label>
-              <input
-                type="url"
-                name="github_url"
-                value={formData.github_url}
-                onChange={handleChange}
-                placeholder="https://github.com/username"
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
-              />
-            </div>
-
-            {/* LinkedIn URL */}
-            <div>
-              <label className="block text-sm font-medium mb-2">LinkedIn URL (Optional)</label>
-              <input
-                type="url"
-                name="linkedin_url"
-                value={formData.linkedin_url}
-                onChange={handleChange}
-                placeholder="https://linkedin.com/in/username"
-                className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
-              />
-            </div>
-
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg font-semibold transition-all mt-8"
+              className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 rounded-lg font-semibold transition-all"
             >
-              {loading ? 'Creating Profile...' : 'Create Profile'}
+              {loading ? 'Creando agente...' : 'Crear agente'}
             </button>
           </form>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function TagInput({
+  label,
+  value,
+  setValue,
+  onKeyDown,
+  items,
+  onRemove,
+  placeholder,
+  tone,
+}: {
+  label: string
+  value: string
+  setValue: (value: string) => void
+  onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void
+  items: string[]
+  onRemove: (index: number) => void
+  placeholder: string
+  tone: 'purple' | 'pink' | 'violet'
+}) {
+  const toneClass = tone === 'pink' ? 'bg-pink-600' : 'bg-purple-600'
+
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-2">{label} (Enter para agregar)</label>
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={onKeyDown}
+        placeholder={placeholder}
+        className="w-full px-4 py-2 bg-slate-700 border border-purple-500/30 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+      />
+      <div className="flex flex-wrap gap-2 mt-3">
+        {items.map((item, index) => (
+          <span key={`${label}-${item}-${index}`} className={`px-3 py-1 ${toneClass} rounded-full text-sm flex items-center gap-2`}>
+            {item}
+            <button type="button" onClick={() => onRemove(index)} className="hover:text-red-300">
+              x
+            </button>
+          </span>
+        ))}
       </div>
     </div>
   )

@@ -1,155 +1,107 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { api } from '@/lib/api'
+import { getAgentSession } from '@/lib/agent-session'
+import type { AgentSession } from '@/lib/agent-session'
+import type { MatchmakeResponse } from '@/types/api'
 
 export default function FounderDashboard() {
   const router = useRouter()
+  const [session, setSession] = useState<AgentSession | null>(null)
+  const [matching, setMatching] = useState<MatchmakeResponse | null>(null)
+  const [purpose, setPurpose] = useState('Encontrar founders, hires o socios compatibles para construir una startup de AI, pero solo después de conversar a fondo sobre valores, vínculos y rumbo de vida.')
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
-  const [profileData, setProfileData] = useState<any>(null)
-  const [hasProfile, setHasProfile] = useState(true)
-  const [matches, setMatches] = useState<any[]>([])
   const [matchingLoading, setMatchingLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
+    const activeSession = getAgentSession()
 
-        if (!session) {
-          router.push('/auth')
-          return
-        }
-
-        setUser(session.user)
-
-        // Load startup profile from Supabase
-        const { data: profile, error } = await supabase
-          .from('startup_profiles')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single()
-
-        if (error || !profile) {
-          setHasProfile(false)
-        } else {
-          setProfileData(profile)
-          setHasProfile(true)
-        }
-      } catch (err) {
-        console.error('Error loading dashboard:', err)
-        setHasProfile(false)
-      } finally {
-        setLoading(false)
-      }
+    if (!activeSession || activeSession.role !== 'founder') {
+      router.replace('/onboarding/startup')
+      return
     }
 
-    loadData()
+    setSession(activeSession)
+    setLoading(false)
   }, [router])
 
   const handleRunMatching = async () => {
+    if (!session) return
+
     setMatchingLoading(true)
     setError('')
 
     try {
-      // Get all candidate profiles
-      const { data: candidates, error: candidatesError } = await supabase
-        .from('candidate_profiles')
-        .select('*')
+      const result = await api.runMatchmake(session.activeAgentId, {
+        purpose,
+        minScore: 0.55,
+        limit: 3,
+        turnsPerAgent: 1,
+        maxRounds: 3,
+        thinking: 'minimal',
+      })
 
-      if (candidatesError) throw candidatesError
-
-      if (!candidates || candidates.length === 0) {
-        setError('No candidates available yet')
-        return
-      }
-
-      // Calculate match scores
-      const calculatedMatches = candidates.map((candidate: any) => {
-        const skillOverlap = (profileData.stack || []).filter((s: string) =>
-          (candidate.skills || []).some((cs: string) => cs.toLowerCase() === s.toLowerCase()) ||
-          (candidate.technologies || []).some((cs: string) => cs.toLowerCase() === s.toLowerCase())
-        ).length
-
-        const totalSkills = Math.max((profileData.stack || []).length, 1)
-        const skillScore = skillOverlap / totalSkills
-
-        const expScore = Math.min(candidate.experience_years / 10, 1)
-        const score = skillScore * 0.6 + expScore * 0.4
-
-        return {
-          id: candidate.id,
-          candidate_id: candidate.user_id,
-          match_score: score,
-          summary: `Candidate with ${candidate.experience_years} years of experience and ${(candidate.skills || []).length} skills.`,
-          reasons: [
-            `${skillOverlap} skills match your tech stack`,
-            `${candidate.experience_years} years of experience`,
-            `Skills: ${(candidate.skills || []).slice(0, 3).join(', ')}`,
-          ],
-          bio: candidate.bio,
-          skills: candidate.skills,
-          technologies: candidate.technologies,
-        }
-      }).sort((a: any, b: any) => b.match_score - a.match_score)
-
-      setMatches(calculatedMatches)
-    } catch (err: any) {
-      setError(err.message || 'Failed to run matching')
+      setMatching(result)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No pudimos correr matchmaking.')
     } finally {
       setMatchingLoading(false)
     }
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/')
-  }
-
-  if (loading) {
+  if (loading || !session) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-400"></div>
       </div>
     )
   }
 
-  if (!hasProfile) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center px-4">
-        <div className="max-w-2xl w-full">
-          <div className="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-6 text-center">
-            <h2 className="text-xl font-bold mb-4">Complete Your Profile First</h2>
-            <p className="text-slate-400 mb-6">Create your startup profile to start matching with talented candidates.</p>
-            <Link href="/onboarding/startup" className="inline-block px-6 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg">
-              Create Startup Profile
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const grading = session.grading
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex justify-between items-center">
+      <div className="max-w-5xl mx-auto space-y-8">
+        <div className="flex justify-between items-center gap-6 flex-wrap">
           <div>
             <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent">
-              {profileData?.name || 'Find Your Team'}
+              {session.activeAgentName}
             </h1>
-            <p className="text-slate-400">Use AI-powered matching to discover the perfect team members for your startup</p>
+            <p className="text-slate-400">Tu agente fundador ya puede evaluar compatibilidad contra otros agentes existentes.</p>
           </div>
+          <div className="px-4 py-2 rounded-lg bg-slate-800/60 border border-pink-500/20 text-sm text-slate-300">
+            Agent ID: <span className="font-mono text-white">{session.activeAgentId}</span>
+          </div>
+        </div>
+
+        {grading && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <Metric label="Overall" value={grading.overallScore} />
+            <Metric label="Personal" value={grading.personalScore} />
+            <Metric label="Social" value={grading.socialScore} />
+            <Metric label="Professional" value={grading.professionalScore} />
+          </div>
+        )}
+
+        <div className="rounded-2xl border border-pink-500/30 bg-slate-800/40 p-6 space-y-4">
+          <h2 className="text-2xl font-bold text-white">Matchmaking automático</h2>
+          <p className="text-slate-400">Esto llama a `POST /agents/:id/matchmake` usando tu `agentId` persistido.</p>
+          <textarea
+            value={purpose}
+            onChange={(e) => setPurpose(e.target.value)}
+            rows={3}
+            className="w-full px-4 py-3 bg-slate-900/70 border border-pink-500/20 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 resize-none"
+          />
           <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm"
+            onClick={handleRunMatching}
+            disabled={matchingLoading}
+            className="px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 disabled:opacity-50 rounded-lg font-semibold transition-all"
           >
-            Logout
+            {matchingLoading ? 'Corriendo matchmaking...' : 'Buscar matches'}
           </button>
         </div>
 
@@ -159,92 +111,65 @@ export default function FounderDashboard() {
           </div>
         )}
 
-        {/* Matching Button */}
-        <div className="text-center">
-          <button
-            onClick={handleRunMatching}
-            disabled={matchingLoading}
-            className="px-8 py-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 disabled:opacity-50 rounded-lg font-semibold transition-all text-lg"
-          >
-            {matchingLoading ? '🔍 Buscando matches con agentes IA...' : '🔍 Buscar matches con agentes IA'}
-          </button>
-        </div>
-
-        {/* Results */}
-        {matches.length > 0 && (
+        {matching && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold">
-              {matches.length} Matches Found 🎯
-            </h2>
+            <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-6">
+              <h2 className="text-2xl font-bold mb-2">Resultado</h2>
+              <p className="text-slate-300">Evaluados: {matching.evaluatedCandidates} · Devueltos: {matching.returnedMatches}</p>
+            </div>
 
             <div className="grid gap-4">
-              {matches.map(match => (
-                <div
-                  key={match.id}
-                  className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-6 hover:border-purple-400 transition-all"
-                >
-                  {/* Match Score */}
-                  <div className="flex items-start justify-between mb-4">
+              {matching.matches.map((match) => (
+                <div key={match.conversationId} className="bg-slate-800/50 border border-purple-500/30 rounded-xl p-6">
+                  <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
-                      <h3 className="text-lg font-bold text-slate-100 mb-2">
-                        Candidate Match
-                      </h3>
-                      <div className="flex items-center gap-3">
-                        <div className="relative w-24 h-24 rounded-full border-4 border-purple-500/50 flex items-center justify-center bg-gradient-to-br from-purple-900 to-slate-900">
-                          <div className="text-center">
-                            <div className="text-3xl font-bold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text">
-                              {Math.round(match.match_score * 100)}%
-                            </div>
-                            <div className="text-xs text-slate-500">Compatible</div>
-                          </div>
-                        </div>
-                      </div>
+                      <h3 className="text-lg font-bold text-slate-100">{match.candidateId}</h3>
+                      <p className="text-sm text-slate-400">{match.compatibility.summary}</p>
+                    </div>
+                    <div className="text-3xl font-bold text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text">
+                      {Math.round(match.compatibility.score * 100)}%
                     </div>
                   </div>
 
-                  {/* Bio */}
-                  {match.bio && (
-                    <div className="mb-4">
-                      <p className="text-slate-300 leading-relaxed italic">"{match.bio}"</p>
-                    </div>
-                  )}
-
-                  {/* Reasons */}
-                  <div className="mb-6 space-y-2">
-                    <h4 className="font-semibold text-slate-300">Why this is a great match:</h4>
-                    <ul className="space-y-1">
-                      {match.reasons.map((reason: string, i: number) => (
-                        <li key={i} className="text-slate-400 text-sm flex items-start gap-2">
-                          <span className="text-purple-400 mt-0.5">✓</span>
-                          <span>{reason}</span>
-                        </li>
+                  <div className="mb-4">
+                    <h4 className="font-semibold text-slate-300 mb-2">Razones</h4>
+                    <ul className="space-y-1 text-sm text-slate-400">
+                      {match.compatibility.reasons.map((reason) => (
+                        <li key={reason}>• {reason}</li>
                       ))}
                     </ul>
                   </div>
 
-                  {/* Skills */}
-                  {match.skills && match.skills.length > 0 && (
+                  {match.compatibility.sharedInterests.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {match.skills.slice(0, 5).map((skill: string, i: number) => (
-                        <span key={i} className="px-2 py-1 bg-purple-600/40 rounded text-xs">
-                          {skill}
+                      {match.compatibility.sharedInterests.map((interest) => (
+                        <span key={interest} className="px-2 py-1 bg-purple-600/40 rounded text-xs">
+                          {interest}
                         </span>
                       ))}
                     </div>
                   )}
+
+                  <div className="mt-4">
+                    <Link href="/arena" className="text-sm text-pink-300 hover:text-pink-200">
+                      Abrir Arena para correr otra conversación →
+                    </Link>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
-
-        {!matchingLoading && matches.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🤖</div>
-            <p className="text-slate-400">Click "Buscar matches" to find candidates that match your startup</p>
-          </div>
-        )}
       </div>
+    </div>
+  )
+}
+
+function Metric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-slate-900/40 p-4">
+      <div className="text-xs uppercase tracking-wider text-slate-500 mb-2">{label}</div>
+      <div className="text-2xl font-bold text-white">{Math.round(value * 100)}%</div>
     </div>
   )
 }

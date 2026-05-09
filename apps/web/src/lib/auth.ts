@@ -1,3 +1,4 @@
+import { clearAgentSession } from './agent-session'
 import { supabase } from './supabase'
 
 export interface AuthUser {
@@ -28,7 +29,9 @@ const listeners: Set<(state: AuthState) => void> = new Set()
 export function subscribeToAuth(listener: (state: AuthState) => void) {
   listeners.add(listener)
   listener(authState)
-  return () => listeners.delete(listener)
+  return () => {
+    listeners.delete(listener)
+  }
 }
 
 function notifyListeners() {
@@ -96,13 +99,14 @@ export function clearAuth() {
 
 export async function logout() {
   await supabase.auth.signOut()
+  clearAgentSession()
   clearAuth()
 }
 
 if (typeof window !== 'undefined') {
   syncAuthFromSupabase()
 
-  supabase.auth.onAuthStateChange((event, session) => {
+  supabase.auth.onAuthStateChange((_event, session) => {
     if (session) {
       authState = {
         user: {

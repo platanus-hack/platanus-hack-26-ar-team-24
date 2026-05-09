@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import { LogOut, ChevronDown, Compass, LayoutDashboard, Radio } from 'lucide-react'
 import Logo from './Logo'
 import { useAuth } from '@/hooks/useAuth'
+import { getAgentSession } from '@/lib/agent-session'
 import { logout } from '@/lib/auth'
 
 type NavItem = {
@@ -41,8 +42,19 @@ export default function AppNav({ maxWidth = 'max-w-6xl' }: { maxWidth?: string }
   const pathname = usePathname() || ''
   const router = useRouter()
   const { user, isAuthenticated } = useAuth()
+  const [agentSessionName, setAgentSessionName] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    const syncAgentSession = () => {
+      setAgentSessionName(getAgentSession()?.activeAgentName || null)
+    }
+
+    syncAgentSession()
+    window.addEventListener('agent-session-change', syncAgentSession)
+    return () => window.removeEventListener('agent-session-change', syncAgentSession)
+  }, [])
 
   useEffect(() => {
     if (!menuOpen) return
@@ -58,12 +70,13 @@ export default function AppNav({ maxWidth = 'max-w-6xl' }: { maxWidth?: string }
   const handleSignOut = async () => {
     setMenuOpen(false)
     await logout()
-    router.push('/auth')
+    router.push('/landing')
   }
 
-  const displayName = user?.name || user?.username || user?.email?.split('@')[0] || 'Tu agente'
+  const displayName = user?.name || user?.username || agentSessionName || user?.email?.split('@')[0] || 'Tu agente'
   const displayEmail = user?.email
   const initial = (displayName?.[0] || 'A').toUpperCase()
+  const hasSession = isAuthenticated || Boolean(agentSessionName)
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/5 bg-ink-950/80 backdrop-blur supports-[backdrop-filter]:bg-ink-950/60">
@@ -114,7 +127,7 @@ export default function AppNav({ maxWidth = 'max-w-6xl' }: { maxWidth?: string }
             })}
           </nav>
 
-          {isAuthenticated && user ? (
+          {hasSession ? (
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
@@ -123,7 +136,7 @@ export default function AppNav({ maxWidth = 'max-w-6xl' }: { maxWidth?: string }
                 aria-expanded={menuOpen}
                 className="inline-flex items-center gap-2 pl-1 pr-2 py-1 rounded-full border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-colors"
               >
-                <Avatar src={user.avatar_url} initial={initial} />
+                <Avatar src={user?.avatar_url} initial={initial} />
                 <span className="hidden sm:inline text-xs text-zinc-300 max-w-[110px] truncate">
                   {displayName}
                 </span>
@@ -136,7 +149,7 @@ export default function AppNav({ maxWidth = 'max-w-6xl' }: { maxWidth?: string }
                   className="absolute right-0 mt-2 w-64 rounded-xl border border-white/10 bg-ink-950/95 backdrop-blur shadow-xl shadow-black/40 overflow-hidden"
                 >
                   <div className="px-4 py-3 border-b border-white/5 flex items-center gap-3">
-                    <Avatar src={user.avatar_url} initial={initial} size={36} />
+                    <Avatar src={user?.avatar_url} initial={initial} size={36} />
                     <div className="min-w-0">
                       <p className="text-sm text-white truncate">{displayName}</p>
                       {displayEmail && (

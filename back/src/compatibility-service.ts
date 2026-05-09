@@ -8,17 +8,45 @@ import type {
   UserProfile
 } from "./types.js";
 import { graderProfileSchema, judgeDecisionSchema } from "./types.js";
+import { PersistenceService } from "./persistence-service.js";
 import { RuntimeClient } from "./runtime-client.js";
 import { logger } from "./logger.js";
+
+const PERSONAL_TOPIC_AGENDA = [
+  {
+    key: "values-and-priorities",
+    label: "valores y prioridades personales",
+    instruction:
+      "Hablen de qué valores ordenan sus decisiones, qué les importa de verdad en la vida y qué cosas no están dispuestos a negociar."
+  },
+  {
+    key: "relationships-and-conflict",
+    label: "vínculos, amistad y manejo del conflicto",
+    instruction:
+      "Hablen de cómo construyen confianza, qué esperan de una amistad cercana y cómo reaccionan cuando hay desacuerdo o tensión."
+  },
+  {
+    key: "life-direction-and-growth",
+    label: "rumbo de vida, ambición y crecimiento personal",
+    instruction:
+      "Hablen de hacia dónde quieren llevar su vida, qué tipo de crecimiento buscan y qué sacrificios están o no dispuestos a hacer."
+  }
+] as const;
 
 export class CompatibilityService {
   constructor(
     private runtime: RuntimeClient,
     private graderAgentId: string,
-    private judgeAgentId: string
+    private judgeAgentId: string,
+    private persistence: PersistenceService
   ) {}
 
-  async createProfiledAgent(agentId: string, user: UserProfile): Promise<GraderProfile> {
+  async createProfiledAgent(
+    agentId: string,
+    user: UserProfile,
+    ownerUserId?: string,
+    ownerAccessToken?: string
+  ): Promise<GraderProfile> {
     logger.info("Creating profiled agent", { agentId, userName: user.name });
 
     await this.runtime.ensureAgentExists(this.graderAgentId);
@@ -30,11 +58,23 @@ export class CompatibilityService {
     logger.debug("Writing agent profile files", { agentId, overallScore: grade.overallScore });
     await this.writeAgentProfileFiles(agentId, user, grade);
 
+    if (ownerUserId && ownerAccessToken) {
+      await this.persistence.upsertAgentIdentity({
+        ownerUserId,
+        ownerAccessToken,
+        agentId,
+        agentName: user.name,
+        role: this.extractAgentRole(user),
+        profile: user,
+        grading: grade
+      });
+    }
+
     logger.info("Profiled agent created successfully", { agentId, overallScore: grade.overallScore });
     return grade;
   }
 
-  async runConversation(config: ConversationConfig) {
+  async runConversation(config: ConversationConfig, ownerUserId?: string, ownerAccessToken?: string) {
     if (config.agentA === config.agentB) {
       throw new Error("agentA and agentB must be different");
     }
@@ -57,14 +97,16 @@ export class CompatibilityService {
       [config.agentA]: `a-${shortConversationId}`,
       [config.agentB]: `b-${shortConversationId}`
     };
+    const effectiveMaxRounds = Math.max(config.maxRounds, PERSONAL_TOPIC_AGENDA.length);
 
     let currentPrompt = config.openingMessage;
     let finalDecision: JudgeDecision | null = null;
 
-    for (let round = 1; round <= config.maxRounds; round += 1) {
+    for (let round = 1; round <= effectiveMaxRounds; round += 1) {
       logger.debug("Running conversation round", { conversationId, round });
       let currentSpeaker = config.agentA;
       let otherSpeaker = config.agentB;
+      const roundTopic = this.getRoundTopic(round);
 
       for (let turnIndex = 0; turnIndex < config.turnsPerAgent * 2; turnIndex += 1) {
         const speakerTurnNumber =
@@ -81,7 +123,10 @@ export class CompatibilityService {
             turnIndex === 0 && round === 1 ? undefined : currentPrompt,
           turnNumber: speakerTurnNumber,
           turnsPerAgent: config.turnsPerAgent,
-          globalTurnNumber: transcript.length + 1
+          globalTurnNumber: transcript.length + 1,
+          round,
+          topicLabel: roundTopic.label,
+          topicInstruction: roundTopic.instruction
         });
 
         const text = await this.runtime.sendMessage({
@@ -90,15 +135,16 @@ export class CompatibilityService {
           thinking: config.thinking,
           sessionId: sessionIds[currentSpeaker]
         });
+        const cleanedText = this.sanitizeAgentUtterance(text);
 
         transcript.push({
           speaker: currentSpeaker,
-          text,
+          text: cleanedText,
           round,
           turn: turnIndex + 1
         });
 
-        currentPrompt = text;
+        currentPrompt = cleanedText;
         [currentSpeaker, otherSpeaker] = [otherSpeaker, currentSpeaker];
       }
 
@@ -107,10 +153,24 @@ export class CompatibilityService {
         agentA: config.agentA,
         agentB: config.agentB,
         currentRound: round,
-        maxRounds: config.maxRounds,
+        maxRounds: effectiveMaxRounds,
         transcript,
-        thinking: config.thinking
+        thinking: config.thinking,
+        requiredTopics: PERSONAL_TOPIC_AGENDA.map((topic) => topic.label)
       });
+
+      if (round < PERSONAL_TOPIC_AGENDA.length) {
+        finalDecision = {
+          ...finalDecision,
+          done: false,
+          outcome: "continue",
+          summary: `Todavía faltan temas personales obligatorios por cubrir antes de decidir compatibilidad. Ya hablaron de ${roundTopic.label}.`,
+          reasons: [
+            ...finalDecision.reasons,
+            `La conversación aún no cubrió los ${PERSONAL_TOPIC_AGENDA.length} tópicos personales mínimos.`
+          ]
+        };
+      }
 
       logger.debug("Judge evaluation result", {
         conversationId,
@@ -124,13 +184,8 @@ export class CompatibilityService {
         break;
       }
 
-      if (round < config.maxRounds) {
-        currentPrompt = [
-          "Continúen la charla desde donde quedó.",
-          `Última evaluación del juez: ${finalDecision.summary}`,
-          "No reinicien la conversación, no vuelvan a saludar y no se re-presenten.",
-          "Profundicen en intereses compartidos o aclaren diferencias, pero mantengan la conversación natural."
-        ].join("\n\n");
+      if (round < effectiveMaxRounds) {
+        currentPrompt = this.buildInterRoundPrompt(round + 1, finalDecision.summary);
       }
     }
 
@@ -155,19 +210,40 @@ export class CompatibilityService {
       roundsUsed: transcript.length / (config.turnsPerAgent * 2)
     });
 
+    if (ownerUserId && ownerAccessToken) {
+      await this.persistence.saveConversation({
+        conversationId,
+        ownerUserId,
+        ownerAccessToken,
+        agentA: config.agentA,
+        agentB: config.agentB,
+        judgeAgentId: this.judgeAgentId,
+        openingMessage: config.openingMessage,
+        turnsPerAgent: config.turnsPerAgent,
+        maxRounds: effectiveMaxRounds,
+        compatibility: finalDecision,
+        transcript
+      });
+    }
+
     return {
       conversationId,
       agentA: config.agentA,
       agentB: config.agentB,
       turnsPerAgent: config.turnsPerAgent,
-      maxRounds: config.maxRounds,
+      maxRounds: effectiveMaxRounds,
       judgeAgentId: this.judgeAgentId,
       compatibility: finalDecision,
       transcript
     };
   }
 
-  async runPurposeMatchmaking(agentId: string, request: MatchmakingRequest) {
+  async runPurposeMatchmaking(
+    agentId: string,
+    request: MatchmakingRequest,
+    ownerUserId?: string,
+    ownerAccessToken?: string
+  ) {
     logger.info("Starting purpose matchmaking", {
       agentId,
       purpose: request.purpose,
@@ -195,7 +271,7 @@ export class CompatibilityService {
           turnsPerAgent: request.turnsPerAgent,
           maxRounds: request.maxRounds,
           thinking: request.thinking
-        });
+        }, ownerUserId, ownerAccessToken);
 
         if (result.compatibility.score >= request.minScore) {
           matches.push({
@@ -271,6 +347,7 @@ export class CompatibilityService {
     maxRounds: number;
     transcript: TranscriptMessage[];
     thinking: string;
+    requiredTopics: string[];
   }): Promise<JudgeDecision> {
     const transcriptText = args.transcript
       .map(
@@ -288,9 +365,15 @@ export class CompatibilityService {
       "Devuelve SOLO JSON: {\"done\": bool, \"score\": 0-1, \"outcome\": \"match\"|\"no_match\"|\"continue\", \"summary\": string, \"sharedInterests\": [], \"reasons\": []}",
       "",
       "Criterios:",
-      "- MATCH (0.65+): Interés mutuo genuino, valores alineados, podrían trabajar juntos",
-      "- NO_MATCH (≤0.4): Valores opuestos, desinterés, incompatibilidad clara",
+      "- MATCH (0.65+): Interés mutuo genuino, química social o intelectual, valores suficientemente alineados y ganas reales de seguir hablando o verse.",
+      "- NO_MATCH (≤0.4): Valores opuestos, desinterés, conversación forzada, falta de química, o incompatibilidad clara incluso para amistad.",
       "- CONTINUE (0.4-0.65): Incierto, necesita más datos",
+      "- Si ya hay evidencia suficiente para MATCH o NO_MATCH, marca done=true de inmediato.",
+      "- Después de la ronda 1, usa CONTINUE solo si realmente falta información crítica.",
+      "- No asumas que deben hacer match. Es totalmente válido concluir que no conectarían ni como amigos.",
+      "- Valora también desacuerdos productivos: debatir no implica incompatibilidad si hay curiosidad, respeto y buena señal interpersonal.",
+      `- Antes de emitir una decisión final, asegúrate de que hayan recorrido al menos estos ${args.requiredTopics.length} tópicos personales: ${args.requiredTopics.join(", ")}.`,
+      "- Si todavía no pasaron por todos esos tópicos, debes devolver done=false y outcome=continue.",
       "",
       "Conversación:",
       transcriptText
@@ -316,30 +399,80 @@ export class CompatibilityService {
     turnNumber: number;
     turnsPerAgent: number;
     globalTurnNumber: number;
+    round: number;
+    topicLabel: string;
+    topicInstruction: string;
   }): string {
     if (args.globalTurnNumber === 1 && args.openingMessage) {
       return [
-        `Estás conversando con ${args.listener}. Sé auténtico, responde con tu criterio genuino.`,
+        `Estás conversando con ${args.listener}. Habla en primera persona como si fueras la persona representada, no como observador externo ni en tercera persona.`,
+        `Tu próximo mensaje será enviado DIRECTAMENTE a ${args.listener}.`,
+        "No le respondas al usuario, al operador, al configurador ni a quien armó la simulación.",
+        "No respondas al contexto como si te hubieran hecho esa pregunta a ti. Ese contexto NO es un mensaje del otro agente.",
+        "Sé auténtico, responde con tu criterio genuino, con opiniones reales y sin intentar caer bien artificialmente.",
+        "Puedes coincidir, disentir, cuestionar ideas y debatir con naturalidad. No estás obligado a gustarle al otro agente.",
+        "Responde como una persona hablando con otra persona.",
+        "No describas la conversación desde afuera. No uses fórmulas como 'Tu mensaje ha sido enviado a...', 'Él respondió:', 'ella dijo:', ni comillas narrativas.",
+        "Devuelve solo el texto que realmente le dirías al otro agente.",
+        `TEMA OBLIGATORIO DE ESTA RONDA (${args.round}/${PERSONAL_TOPIC_AGENDA.length}): ${args.topicLabel}.`,
+        args.topicInstruction,
         "",
-        `${args.openingMessage}`,
+        "CONTEXTO INICIAL DE LA CONVERSACIÓN:",
+        args.openingMessage,
         "",
-        "IMPORTANTE: Responde BREVE. 1-2 oraciones máximo. Nada de párrafos largos."
+        "Ese contexto describe qué busca explorar esta conversación. No lo trates como un mensaje textual del otro agente.",
+        "Tu tarea es abrir la charla de forma natural, como en la vida real, usando ese contexto solo como orientación.",
+        `Empieza tú la conversación con una observación, opinión o pregunta genuina dirigida a ${args.listener}.`,
+        "Tu primera línea debe sonar como el inicio natural de un chat entre dos personas, no como una respuesta a un formulario o consigna.",
+        "",
+        "IMPORTANTE: Responde BREVE. 1-3 oraciones máximo. Nada de párrafos largos."
       ].join("\n\n");
     }
 
     return [
-      `${args.priorMessage}`,
+      `Último mensaje recibido de ${args.listener}:`,
+      args.priorMessage ?? "",
       "",
-      "IMPORTANTE: Responde BREVE. 1-2 oraciones máximo. Mantén la conversación natural y fluida, no filosófica."
+      `Tu próximo mensaje será enviado DIRECTAMENTE a ${args.listener}.`,
+      "No le respondas al usuario, al operador, al configurador ni a quien armó la simulación.",
+      "",
+      `TEMA OBLIGATORIO DE ESTA RONDA (${args.round}/${PERSONAL_TOPIC_AGENDA.length}): ${args.topicLabel}.`,
+      args.topicInstruction,
+      "Habla en primera persona como una conversación real entre dos personas.",
+      "No describas la conversación desde afuera. No uses fórmulas como 'Tu mensaje ha sido enviado a...', 'Él respondió:', 'ella dijo:', ni comillas narrativas.",
+      "Devuelve solo el texto que realmente le dirías al otro agente.",
+      "Mantén la conversación natural y fluida. Puedes debatir ideas, marcar desacuerdos y defender tu punto sin volverte hostil.",
+      "IMPORTANTE: Responde BREVE. 1-3 oraciones máximo.",
+      "No hagas preguntas abiertas infinitas. Si ya tienes suficiente señal, cierra con una conclusión concreta."
     ].join("\n\n");
   }
 
   private buildPurposeOpeningMessage(agentA: string, agentB: string, purpose: string): string {
     return [
       `Tu objetivo en esta charla es evaluar si ${agentA} y ${agentB} deberían conectarse por el siguiente propósito: ${purpose}.`,
-      "Conversen de forma natural para detectar compatibilidad real, intereses compartidos, estilo de trabajo y posibles fricciones.",
-      "No hagan un pitch artificial. Traten de descubrir rápido si vale la pena la conexión."
+      "Conversen de forma natural para detectar compatibilidad real, intereses compartidos, estilo de trabajo, visión del mundo y posibles fricciones.",
+      "No hagan un pitch artificial. Traten de descubrir rápido si vale la pena la conexión.",
+      "Si no hay química, afinidad o curiosidad mutua, también es válido concluir que no deberían conectar.",
+      `Antes de decidir, recorran estos ${PERSONAL_TOPIC_AGENDA.length} temas personales: ${PERSONAL_TOPIC_AGENDA.map((topic) => topic.label).join(", ")}.`
     ].join("\n\n");
+  }
+
+  private buildInterRoundPrompt(nextRound: number, lastJudgeSummary: string): string {
+    const nextTopic = this.getRoundTopic(nextRound);
+
+    return [
+      "Continúen la charla desde donde quedó.",
+      `Última evaluación del juez: ${lastJudgeSummary}`,
+      "No reinicien la conversación, no vuelvan a saludar y no se re-presenten.",
+      `Ahora pasen explícitamente al siguiente tema personal: ${nextTopic.label}.`,
+      nextTopic.instruction,
+      "No busquen agradarse rápido. Intercambien posturas reales, incluyendo desacuerdos si aparecen.",
+      "Busquen cerrar una conclusión concreta sobre este tema antes de pasar al siguiente."
+    ].join("\n\n");
+  }
+
+  private getRoundTopic(round: number) {
+    return PERSONAL_TOPIC_AGENDA[Math.min(round - 1, PERSONAL_TOPIC_AGENDA.length - 1)];
   }
 
   private async writeAgentProfileFiles(
@@ -399,9 +532,14 @@ export class CompatibilityService {
     const agentsContent = [
       `# ${agentId}`,
       "",
-      "This agent represents a real user and responds following their profile.",
+      "This agent represents a real user and must speak in first person, as that person.",
+      "Never narrate the user from the outside. Do not say things like 'Roman would...' or 'Roman thinks...'.",
+      "Respond as 'I', with the user's own point of view, tradeoffs, preferences, and doubts.",
+      "Never wrap replies with meta text such as 'Your message has been sent', 'He replied', 'She said', or quoted dialogue labels.",
+      "Output only the direct message content the person would say.",
       "Maintain coherence with SOUL.md, IDENTITY.md, and USER.md.",
       "Never invent character traits opposite to evaluated scores and traits.",
+      "You are allowed to disagree, debate ideas, lose interest, or decide there is no compatibility.",
       "",
       "Main interests:",
       ...grade.interests.map((interest) => `- ${interest}`)
@@ -413,5 +551,29 @@ export class CompatibilityService {
       "USER.md": userContent,
       "AGENTS.md": agentsContent
     });
+  }
+
+  private extractAgentRole(user: UserProfile): string | null {
+    const role = user.professional?.role;
+    return typeof role === "string" ? role : null;
+  }
+
+  private sanitizeAgentUtterance(text: string): string {
+    let cleaned = text.trim();
+
+    cleaned = cleaned.replace(
+      /^tu mensaje ha sido enviado a [^.]+?\.\s*(él|ella) respondió:\s*/i,
+      ""
+    );
+    cleaned = cleaned.replace(/^(él|ella) respondió:\s*/i, "");
+    cleaned = cleaned.replace(/^respuesta:\s*/i, "");
+    cleaned = cleaned.replace(/^mensaje:\s*/i, "");
+
+    const quotedMatch = cleaned.match(/^["“](.*)["”]$/s);
+    if (quotedMatch) {
+      cleaned = quotedMatch[1].trim();
+    }
+
+    return cleaned;
   }
 }
