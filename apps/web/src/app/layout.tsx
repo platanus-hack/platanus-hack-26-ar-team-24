@@ -1,36 +1,20 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Instrument_Serif, JetBrains_Mono } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import '@/styles/globals.css'
 
-const inter = Inter({
+const inter = Inter({ 
   subsets: ['latin'],
   variable: '--font-sans',
-  display: 'swap',
-})
-
-const instrumentSerif = Instrument_Serif({
-  subsets: ['latin'],
-  weight: ['400'],
-  style: ['normal', 'italic'],
-  variable: '--font-serif',
-  display: 'swap',
-})
-
-const jetbrains = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: 'AgentLink — AI Matching for Startup Teams',
-  description:
-    'Conecta talento y founders a través de agentes de IA. Compatibilidad real, equipos extraordinarios.',
+  title: 'AgentLink - Tu Twin Digital',
+  description: 'Crea tu clon digital con IA. Simula entrevistas y encuentra el equipo perfecto.',
 }
 
 export const viewport: Viewport = {
-  themeColor: '#f7f5f0',
-  colorScheme: 'light',
+  themeColor: '#000000',
+  colorScheme: 'dark',
   width: 'device-width',
   initialScale: 1,
 }
@@ -41,11 +25,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html
-      lang="es"
-      className={`${inter.variable} ${instrumentSerif.variable} ${jetbrains.variable} bg-background`}
-    >
-      <body className="font-sans antialiased text-foreground">
+    <html lang="es" className={inter.variable}>
+      <body className="bg-black text-white antialiased">
         {children}
       </body>
     </html>

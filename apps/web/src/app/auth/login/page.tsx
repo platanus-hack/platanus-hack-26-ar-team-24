@@ -3,112 +3,92 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowUpRight } from 'lucide-react'
-import { login } from '@/lib/auth'
-import { MacWindow } from '@/components/mac-window'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
   const router = useRouter()
-
-  const [formData, setFormData] = useState({ email: '', password: '' })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-
-    if (!formData.email || !formData.password) {
-      setError('Email y contraseña son requeridos')
-      return
-    }
-
     setLoading(true)
+
     try {
-      const user = await login(formData.email, formData.password)
-      if (user.user_type === 'talent') {
-        router.push('/dashboard/talent')
-      } else {
-        router.push('/dashboard/founder')
-      }
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (authError) throw authError
+      router.push('/dashboard')
     } catch (err: any) {
-      setError(err.message || 'No se pudo iniciar sesión')
+      setError(err.message || 'Error al iniciar sesion')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="w-full max-w-md animate-fade-in">
-      <MacWindow title="login.agentlink" subtitle="autenticación">
-        <div className="p-8 sm:p-10">
-          <div className="mb-7">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              / log in
-            </div>
-            <h1 className="mt-3 font-serif text-4xl leading-[1] tracking-tight">
-              Hola <em className="italic text-muted-foreground">otra vez</em>.
-            </h1>
+    <div className="min-h-screen bg-black flex items-center justify-center px-6">
+      <div className="w-full max-w-sm">
+        <Link href="/auth" className="text-sm text-zinc-500 hover:text-white mb-8 block">
+          ← Volver
+        </Link>
+
+        <h1 className="text-2xl font-bold mb-2">Iniciar sesion</h1>
+        <p className="text-zinc-400 text-sm mb-8">Ingresa a tu cuenta</p>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm text-zinc-400 mb-2">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-zinc-600 transition-colors"
+              placeholder="tu@email.com"
+              required
+            />
           </div>
 
-          {error && (
-            <div className="mb-5 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
+          <div>
+            <label className="block text-sm text-zinc-400 mb-2">Contrasena</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-zinc-600 transition-colors"
+              placeholder="••••••••"
+              required
+            />
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="vos@startup.com"
-                autoComplete="email"
-              />
-            </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-white text-black rounded-lg font-medium hover:bg-zinc-200 transition-colors disabled:opacity-50"
+          >
+            {loading ? 'Ingresando...' : 'Ingresar'}
+          </button>
+        </form>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                autoComplete="current-password"
-              />
-            </div>
-
-            <Button type="submit" disabled={loading} size="lg" variant="default" className="w-full">
-              {loading ? 'Ingresando…' : 'Ingresar'}
-              {!loading && <ArrowUpRight className="size-4" />}
-            </Button>
-          </form>
-
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            ¿No tenés cuenta?{' '}
-            <Link
-              href="/auth/register"
-              className="font-medium text-foreground underline-offset-4 hover:underline"
-            >
-              Registrate
-            </Link>
-          </p>
-        </div>
-      </MacWindow>
+        <p className="mt-6 text-center text-sm text-zinc-500">
+          No tenes cuenta?{' '}
+          <Link href="/auth/register" className="text-white hover:underline">
+            Registrate
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }
