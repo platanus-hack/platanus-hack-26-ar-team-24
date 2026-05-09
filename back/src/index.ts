@@ -61,11 +61,11 @@ app.post("/agents", async (req, res, next) => {
     }
 
     const input = profiledParse.data;
-    const grade = await compatibilityService.createProfiledAgent(input.id, input.user);
+    const result = await compatibilityService.createProfiledAgent(input.id, input.user);
 
     res.status(201).json({
       agent: { id: input.id },
-      grading: grade
+      grading: result
     });
   } catch (error) {
     next(error);

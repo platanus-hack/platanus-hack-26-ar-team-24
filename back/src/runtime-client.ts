@@ -27,11 +27,14 @@ export class RuntimeClient {
     return body as { agents?: Array<{ id: string }> };
   }
 
-  async createAgent(agentId: string) {
+  async createAgent(
+    agentId: string,
+    options?: { skills?: string[]; bind?: string[]; agentDir?: string; default?: boolean }
+  ) {
     const { response, body } = await this.call("/admin/agents", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ id: agentId })
+      body: JSON.stringify({ id: agentId, ...options })
     });
 
     if (!response.ok) {
@@ -41,11 +44,14 @@ export class RuntimeClient {
     return body;
   }
 
-  async ensureAgentExists(agentId: string): Promise<void> {
+  async ensureAgentExists(
+    agentId: string,
+    options?: { skills?: string[]; bind?: string[]; agentDir?: string; default?: boolean }
+  ): Promise<void> {
     const body = await this.listAgents();
     const exists = body.agents?.some((agent) => agent.id === agentId);
     if (!exists) {
-      await this.createAgent(agentId);
+      await this.createAgent(agentId, options);
     }
   }
 
