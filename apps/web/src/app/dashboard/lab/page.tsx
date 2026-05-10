@@ -12,6 +12,39 @@ import type { MatchmakeResponse } from '@/types/api'
 const DEFAULT_PURPOSE =
   'Quiero que mi agente converse con otros perfiles como una persona real, explore intereses, hábitos, valores y tensión creativa, y detecte con quién hay conexión genuina.'
 
+const LAB_STORAGE_PREFIX = 'agent_lab_state:'
+
+type StoredLabState = {
+  purpose: string
+  limit: number
+  minScore: number
+  result: MatchmakeResponse | null
+}
+
+function getStorageKey(agentId: string) {
+  return `${LAB_STORAGE_PREFIX}${agentId}`
+}
+
+function loadStoredLabState(agentId: string): StoredLabState | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(getStorageKey(agentId))
+    if (!raw) return null
+    return JSON.parse(raw) as StoredLabState
+  } catch {
+    return null
+  }
+}
+
+function persistLabState(agentId: string, state: StoredLabState) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(getStorageKey(agentId), JSON.stringify(state))
+  } catch {
+    // ignore quota / serialization issues
+  }
+}
+
 export default function AgentLabPage() {
   const router = useRouter()
   const [session, setSession] = useState<AgentSession | null>(null)
@@ -20,9 +53,10 @@ export default function AgentLabPage() {
   const [error, setError] = useState('')
   const [availableCandidates, setAvailableCandidates] = useState(0)
   const [purpose, setPurpose] = useState(DEFAULT_PURPOSE)
-  const [limit, setLimit] = useState(8)
+  const [limit, setLimit] = useState(0)
   const [minScore, setMinScore] = useState(0)
   const [result, setResult] = useState<MatchmakeResponse | null>(null)
+  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -34,6 +68,15 @@ export default function AgentLabPage() {
       }
 
       setSession(activeSession)
+
+      const stored = loadStoredLabState(activeSession.activeAgentId)
+      if (stored) {
+        setPurpose(stored.purpose)
+        setLimit(stored.limit)
+        setMinScore(stored.minScore)
+        setResult(stored.result)
+      }
+      setHydrated(true)
 
       try {
         const response = await api.listAgents()
@@ -50,6 +93,11 @@ export default function AgentLabPage() {
 
     load()
   }, [router])
+
+  useEffect(() => {
+    if (!session || !hydrated) return
+    persistLabState(session.activeAgentId, { purpose, limit, minScore, result })
+  }, [session, hydrated, purpose, limit, minScore, result])
 
   const handleRun = async () => {
     if (!session) return
@@ -170,7 +218,7 @@ export default function AgentLabPage() {
                 >
                   <input
                     type="range"
-                    min={1}
+                    min={0}
                     max={Math.max(availableCandidates, 1)}
                     value={limit}
                     onChange={(e) => setLimit(Number(e.target.value))}
@@ -253,19 +301,17 @@ export default function AgentLabPage() {
                         <p className="text-sm text-zinc-400 leading-relaxed">
                           {match.transcript[0]?.text || 'Sin apertura registrada.'}
                         </p>
-                        {match.candidateProfile && hasSocialLinks(match.candidateProfile) && (
-                          <div className="mt-4 flex items-center gap-2">
-                            <SocialLink href={match.candidateProfile.githubUrl} label="GitHub">
-                              <GithubMark />
-                            </SocialLink>
-                            <SocialLink href={match.candidateProfile.linkedinUrl} label="LinkedIn">
-                              <LinkedinMark />
-                            </SocialLink>
-                            <SocialLink href={match.candidateProfile.xUrl} label="X">
-                              <XMark />
-                            </SocialLink>
-                          </div>
-                        )}
+                        <div className="mt-4 flex items-center gap-2">
+                          <SocialBadge label="GitHub">
+                            <GithubMark />
+                          </SocialBadge>
+                          <SocialBadge label="LinkedIn">
+                            <LinkedinMark />
+                          </SocialBadge>
+                          <SocialBadge label="X">
+                            <XMark />
+                          </SocialBadge>
+                        </div>
                       </div>
 
                       <div className="text-right shrink-0">
@@ -486,32 +532,22 @@ function ResultMeta({
   )
 }
 
-function SocialLink({
-  href,
+function SocialBadge({
   label,
   children,
 }: {
-  href?: string
   label: string
   children: React.ReactNode
 }) {
-  if (!href) return null
-
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
+    <span
+      role="img"
       aria-label={label}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/[0.08] hover:text-white cursor-pointer"
     >
       {children}
-    </a>
+    </span>
   )
-}
-
-function hasSocialLinks(profile: NonNullable<MatchmakeResponse['matches'][number]['candidateProfile']>) {
-  return Boolean(profile.githubUrl || profile.linkedinUrl || profile.xUrl)
 }
 
 function GithubMark() {

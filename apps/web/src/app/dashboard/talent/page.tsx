@@ -43,11 +43,11 @@ export default function TalentDashboard() {
   const grading = session.grading
   const metrics = grading
     ? [
-        { label: 'Overall', value: grading.overallScore, icon: <Radar size={15} /> },
-        { label: 'Personal', value: grading.personalScore, icon: <Heart size={15} /> },
-        { label: 'Social', value: grading.socialScore, icon: <Sparkles size={15} /> },
-        { label: 'Professional', value: grading.professionalScore, icon: <Target size={15} /> },
-      ]
+      { label: 'Overall', value: grading.overallScore, icon: <Radar size={15} /> },
+      { label: 'Personal', value: grading.personalScore, icon: <Heart size={15} /> },
+      { label: 'Social', value: grading.socialScore, icon: <Sparkles size={15} /> },
+      { label: 'Professional', value: grading.professionalScore, icon: <Target size={15} /> },
+    ]
     : []
 
   return (
@@ -281,11 +281,10 @@ function SignalChip({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-3 py-1.5 text-sm ${
-        tone === 'bright'
+      className={`inline-flex items-center rounded-full border px-3 py-1.5 text-sm ${tone === 'bright'
           ? 'border-white/10 bg-white/[0.06] text-white'
           : 'border-white/10 bg-black/15 text-zinc-200'
-      }`}
+        }`}
     >
       {value}
     </span>
