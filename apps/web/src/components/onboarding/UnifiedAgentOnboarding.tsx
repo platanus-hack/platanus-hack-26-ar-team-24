@@ -45,9 +45,9 @@ type FormState = {
 const EMOTIONAL_QUESTIONS = [
   {
     key: 'optimism',
-    label: '¿Cómo ves las cosas que vienen?',
-    left: 'Más realista',
-    right: 'Más optimista',
+    label: 'Cuando arrancás algo nuevo, ¿qué pensás primero?',
+    left: 'Qué puede salir mal',
+    right: 'Qué puede salir bien',
   },
   {
     key: 'processing',
@@ -69,9 +69,9 @@ const EMOTIONAL_QUESTIONS = [
   },
   {
     key: 'pragmatism',
-    label: 'Si alguien te trae un problema, primero...',
-    left: 'Escucho cómo se siente',
-    right: 'Voy a la solución',
+    label: 'A la hora de decidir, te guiás más por...',
+    left: 'El corazón',
+    right: 'La cabeza',
   },
 ] as const
 
