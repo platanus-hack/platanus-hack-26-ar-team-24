@@ -1,5 +1,6 @@
 {
-  "project-name": "<FILL THIS>",
-  "project-oneliner-spanish": "<FILL THIS>",
-  "project-description-spanish": "<FILL THIS>"
+  "project-name": "KnowAhuman",
+  "project-description-spanish": "KnowAhuman es una plataforma de matching asistido por inteligencia artificial que conecta talento con startups a partir de conversaciones simuladas entre agentes, perfiles personales y señales de compatibilidad humana y profesional. El sistema modela a cada persona como un agente capaz de conversar, evaluar afinidad y detectar oportunidades de conexión más genuinas que un matching tradicional basado solo en palabras clave.",
+  "project-oneliner-spanish": "Plataforma de matching entre talento y startups mediante agentes de IA que conversan y evalúan compatibilidad real.",
+  "deploy-url": "https://knewa-human.vercel.app/landing"
 }
