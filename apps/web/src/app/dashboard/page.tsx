@@ -150,55 +150,59 @@ export default function DashboardPage() {
           title="Resumen del grader"
           description={grading?.summary || 'Sin grading disponible todavía.'}
         >
-          <div className="grid grid-cols-12 gap-4 auto-rows-[140px]">
-            <div className="col-span-12 sm:col-span-8 row-span-2 glass-panel rounded-2xl p-6 flex flex-col">
-              <div className="flex items-center gap-2 text-zinc-400 mb-5">
-                <Brain size={14} />
-                <span className="text-xs font-mono uppercase tracking-wider">Scores</span>
-              </div>
-              <div className="flex-1 flex flex-col justify-center gap-3">
-                {dimensions.map((dimension) => (
-                  <div key={dimension.label} className="flex items-center gap-4">
-                    <span className="text-xs text-zinc-400 w-28 shrink-0">{dimension.label}</span>
-                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${dimension.value * 100}%`, background: dimension.accent }}
-                      />
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.8fr)_minmax(18rem,1fr)] lg:items-start">
+            <div className="grid gap-4">
+              <div className="glass-panel rounded-2xl p-6 flex flex-col min-h-[20rem]">
+                <div className="flex items-center gap-2 text-zinc-400 mb-5">
+                  <Brain size={14} />
+                  <span className="text-xs font-mono uppercase tracking-wider">Scores</span>
+                </div>
+                <div className="flex-1 flex flex-col justify-center gap-3">
+                  {dimensions.map((dimension) => (
+                    <div key={dimension.label} className="flex items-center gap-4">
+                      <span className="text-xs text-zinc-400 w-28 shrink-0">{dimension.label}</span>
+                      <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${dimension.value * 100}%`, background: dimension.accent }}
+                        />
+                      </div>
+                      <span className="text-xs font-mono text-zinc-300 w-10 text-right tabular-nums">
+                        {Math.round(dimension.value * 100)}
+                      </span>
                     </div>
-                    <span className="text-xs font-mono text-zinc-300 w-10 text-right tabular-nums">
-                      {Math.round(dimension.value * 100)}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
+
+              <BentoCard icon={<Code size={14} />} label="Fortalezas">
+                <div className="flex flex-wrap gap-2">
+                  {(grading?.strengths || []).map((item) => (
+                    <span key={item} className="px-2.5 py-1 text-xs rounded-md bg-white/5 border border-white/10 text-zinc-300">{item}</span>
+                  ))}
+                </div>
+              </BentoCard>
             </div>
 
-            <BentoCard className="col-span-6 sm:col-span-4" icon={<Heart size={14} />} label="Valores">
-              <p className="font-serif text-2xl text-white">{grading?.values[0] || 'Sin datos'}</p>
-              <p className="text-xs text-zinc-500 mt-1">{grading?.values.slice(1, 3).join(' · ') || 'Esperando onboarding'}</p>
-            </BentoCard>
+            <div className="grid gap-4">
+              <BentoCard icon={<Heart size={14} />} label="Valores">
+                <p className="font-serif text-2xl text-white">{grading?.values[0] || 'Sin datos'}</p>
+                <p className="text-xs text-zinc-500 mt-1">{grading?.values.slice(1, 3).join(' · ') || 'Esperando onboarding'}</p>
+              </BentoCard>
 
-            <BentoCard className="col-span-6 sm:col-span-4" icon={<Compass size={14} />} label="Tono">
-              <p className="font-serif text-2xl text-white">{grading?.conversationStyle || 'Sin datos'}</p>
-              <p className="text-xs text-zinc-500 mt-1">{session.activeAgentId}</p>
-            </BentoCard>
+              <BentoCard icon={<Compass size={14} />} label="Tono">
+                <p className="font-serif text-2xl text-white">{grading?.conversationStyle || 'Sin datos'}</p>
+                <p className="text-xs text-zinc-500 mt-1">{session.activeAgentId}</p>
+              </BentoCard>
 
-            <BentoCard className="col-span-12 sm:col-span-8" icon={<Code size={14} />} label="Fortalezas">
-              <div className="flex flex-wrap gap-2">
-                {(grading?.strengths || []).map((item) => (
-                  <span key={item} className="px-2.5 py-1 text-xs rounded-md bg-white/5 border border-white/10 text-zinc-300">{item}</span>
-                ))}
-              </div>
-            </BentoCard>
-
-            <BentoCard className="col-span-6 sm:col-span-4" icon={<Zap size={14} />} label="Match baseline">
-              <p className="font-serif text-3xl text-white tabular-nums">
-                {grading ? Math.round(grading.overallScore * 100) : 0}
-                <span className="text-zinc-500 text-xl">%</span>
-              </p>
-              <p className="text-xs text-zinc-500 mt-1">{grading?.personalitySummary || 'Sin resumen'}</p>
-            </BentoCard>
+              <BentoCard icon={<Zap size={14} />} label="Match baseline">
+                <p className="font-serif text-3xl text-white tabular-nums">
+                  {grading ? Math.round(grading.overallScore * 100) : 0}
+                  <span className="text-zinc-500 text-xl">%</span>
+                </p>
+                <p className="text-xs text-zinc-500 mt-1">{grading?.personalitySummary || 'Sin resumen'}</p>
+              </BentoCard>
+            </div>
           </div>
         </Section>
       </main>
