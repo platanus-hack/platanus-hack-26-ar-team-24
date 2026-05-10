@@ -138,6 +138,17 @@ app.get("/agents/:id/files", async (req, res, next) => {
   }
 });
 
+app.get("/agent-identities", async (req, res, next) => {
+  try {
+    const ownerAccessToken = getBearerToken(req);
+    const ownerUserId = await getAuthenticatedUserId(req);
+    const agents = await persistenceService.listAgentIdentities(ownerUserId, ownerAccessToken);
+    res.json({ agents });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/agents", async (req, res, next) => {
   try {
     const ownerAccessToken = getBearerToken(req);
@@ -202,7 +213,15 @@ app.get("/conversations", async (req, res, next) => {
   try {
     const ownerAccessToken = getBearerToken(req);
     const ownerUserId = await getAuthenticatedUserId(req);
-    const conversations = await persistenceService.listConversations(ownerUserId, ownerAccessToken);
+    const agentId =
+      typeof req.query.agentId === "string" && req.query.agentId.trim().length > 0
+        ? req.query.agentId.trim()
+        : undefined;
+    const conversations = await persistenceService.listConversations(
+      ownerUserId,
+      ownerAccessToken,
+      agentId
+    );
     res.json({ conversations });
   } catch (error) {
     next(error);

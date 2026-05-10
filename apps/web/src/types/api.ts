@@ -6,6 +6,18 @@ export interface AgentListResponse {
   agents: Array<{ id: string }>
 }
 
+export interface AgentIdentity {
+  agent_id: string
+  agent_name: string
+  agent_role: AgentRole | null
+  grading_profile?: GradingProfile | null
+  updated_at?: string
+}
+
+export interface AgentIdentitiesResponse {
+  agents: AgentIdentity[]
+}
+
 export interface UserProfilePayload {
   name: string
   age?: string | number

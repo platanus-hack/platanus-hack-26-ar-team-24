@@ -1,4 +1,5 @@
 import type {
+  AgentIdentitiesResponse,
   AgentFilesResponse,
   AgentListResponse,
   DashboardAnalyticsResponse,
@@ -60,6 +61,10 @@ class ApiClient {
     return this.request<AgentFilesResponse>(`/agents/${agentId}/files`, undefined, false)
   }
 
+  async listAgentIdentities() {
+    return this.request<AgentIdentitiesResponse>('/agent-identities')
+  }
+
   async createAgent(user: UserProfilePayload) {
     return this.request<CreateAgentResponse>('/agents', {
       method: 'POST',
@@ -81,8 +86,9 @@ class ApiClient {
     })
   }
 
-  async listConversations() {
-    return this.request<ConversationsListResponse>('/conversations')
+  async listConversations(agentId?: string) {
+    const query = agentId ? `?agentId=${encodeURIComponent(agentId)}` : ''
+    return this.request<ConversationsListResponse>(`/conversations${query}`)
   }
 
   async getConversation(conversationId: string) {

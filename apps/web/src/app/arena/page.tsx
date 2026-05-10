@@ -22,26 +22,37 @@ export default function ArenaPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const load = async () => {
-      const activeSession = getAgentSession()
+    const load = async (activeSession: AgentSession | null) => {
+      setError('')
+      setResult(null)
+      setSession(activeSession)
+
       if (!activeSession) {
+        setAgents([])
+        setSelectedAgent('')
+        setSavedConversations([])
         setLoading(false)
         return
       }
 
-      setSession(activeSession)
+      setLoading(true)
 
       try {
         const [response, conversationsResponse] = await Promise.all([
           api.listAgents(),
-          api.listConversations(),
+          api.listConversations(activeSession.activeAgentId),
         ])
         const availableAgents = response.agents.filter(
           (agent) => !['main', 'grader', 'judge', activeSession.activeAgentId].includes(agent.id)
         )
 
         setAgents(availableAgents)
-        setSelectedAgent(availableAgents[0]?.id || '')
+        setSelectedAgent((current) => {
+          if (current && availableAgents.some((agent) => agent.id === current)) {
+            return current
+          }
+          return availableAgents[0]?.id || ''
+        })
         setSavedConversations(conversationsResponse.conversations)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'No pudimos cargar los agentes.')
@@ -50,7 +61,16 @@ export default function ArenaPage() {
       }
     }
 
-    load()
+    const syncAgentSession = () => {
+      void load(getAgentSession())
+    }
+
+    void load(getAgentSession())
+    window.addEventListener('agent-session-change', syncAgentSession)
+
+    return () => {
+      window.removeEventListener('agent-session-change', syncAgentSession)
+    }
   }, [])
 
   const liveScore = result?.compatibility.score || 0
@@ -74,7 +94,7 @@ export default function ArenaPage() {
       })
 
       setResult(conversation)
-      const conversationsResponse = await api.listConversations()
+      const conversationsResponse = await api.listConversations(session.activeAgentId)
       setSavedConversations(conversationsResponse.conversations)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No pudimos correr la conversación.')

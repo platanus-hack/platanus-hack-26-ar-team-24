@@ -23,6 +23,8 @@ type AgentIdentityRow = {
   agent_name: string;
   agent_role: string | null;
   source_profile?: UserProfile | null;
+  grading_profile?: GraderProfile | null;
+  updated_at?: string;
 };
 
 type DashboardSignal = {
@@ -188,13 +190,19 @@ export class PersistenceService {
     }
   }
 
-  async listConversations(ownerUserId: string, ownerAccessToken: string) {
+  async listConversations(ownerUserId: string, ownerAccessToken: string, agentId?: string) {
     const client = createSupabaseUserClient(ownerAccessToken);
-    const { data, error } = await client
+    let query = client
       .from("conversations")
       .select("*")
       .eq("owner_user_id", ownerUserId)
       .order("created_at", { ascending: false });
+
+    if (agentId) {
+      query = query.or(`agent_a_id.eq.${agentId},agent_b_id.eq.${agentId}`);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       throw new Error(`Failed to list conversations: ${error.message}`);
@@ -217,6 +225,21 @@ export class PersistenceService {
     }
 
     return data;
+  }
+
+  async listAgentIdentities(ownerUserId: string, ownerAccessToken: string) {
+    const client = createSupabaseUserClient(ownerAccessToken);
+    const { data, error } = await client
+      .from("agent_identities")
+      .select("agent_id, agent_name, agent_role, grading_profile, updated_at")
+      .eq("user_id", ownerUserId)
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to list agent identities: ${error.message}`);
+    }
+
+    return (data ?? []) as AgentIdentityRow[];
   }
 
   async getAgentIdentityMap(

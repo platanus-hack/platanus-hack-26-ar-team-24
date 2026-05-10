@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { restoreAgentSession } from '@/lib/agent-session'
 import Logo from '@/components/layout/Logo'
 
 type Status = 'pending' | 'error'
@@ -34,6 +35,12 @@ export default function CallbackPage() {
         if (typeof window !== 'undefined') {
           localStorage.setItem('auth_token', data.session.access_token)
           localStorage.setItem('user_id', data.session.user.id)
+        }
+
+        try {
+          await restoreAgentSession(data.session.user.id)
+        } catch (restoreError) {
+          console.error('Agent restore error:', restoreError)
         }
 
         // Small buffer so storage settles before navigating

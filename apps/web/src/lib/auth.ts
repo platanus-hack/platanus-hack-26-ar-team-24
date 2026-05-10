@@ -1,4 +1,4 @@
-import { clearAgentSession } from './agent-session'
+import { clearAgentSession, restoreAgentSession } from './agent-session'
 import { supabase } from './supabase'
 
 export interface AuthUser {
@@ -64,6 +64,8 @@ async function syncAuthFromSupabase() {
       }
 
       localStorage.setItem('auth_token', session.access_token)
+      localStorage.setItem('user_id', session.user.id)
+      await restoreAgentSession(session.user.id)
     } else {
       authState = {
         user: null,
@@ -72,6 +74,7 @@ async function syncAuthFromSupabase() {
         isLoading: false,
       }
       localStorage.removeItem('auth_token')
+      localStorage.removeItem('user_id')
     }
 
     notifyListeners()
@@ -92,6 +95,7 @@ export function clearAuth() {
 
   if (typeof window !== 'undefined') {
     localStorage.removeItem('auth_token')
+    localStorage.removeItem('user_id')
   }
 
   notifyListeners()
@@ -106,7 +110,7 @@ export async function logout() {
 if (typeof window !== 'undefined') {
   syncAuthFromSupabase()
 
-  supabase.auth.onAuthStateChange((_event, session) => {
+  supabase.auth.onAuthStateChange(async (_event, session) => {
     if (session) {
       authState = {
         user: {
@@ -122,6 +126,12 @@ if (typeof window !== 'undefined') {
         isLoading: false,
       }
       localStorage.setItem('auth_token', session.access_token)
+      localStorage.setItem('user_id', session.user.id)
+      try {
+        await restoreAgentSession(session.user.id)
+      } catch (error) {
+        console.error('Agent session restore error:', error)
+      }
     } else {
       authState = {
         user: null,
@@ -130,6 +140,7 @@ if (typeof window !== 'undefined') {
         isLoading: false,
       }
       localStorage.removeItem('auth_token')
+      localStorage.removeItem('user_id')
     }
     notifyListeners()
   })
