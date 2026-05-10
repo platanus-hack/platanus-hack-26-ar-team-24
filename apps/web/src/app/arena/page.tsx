@@ -196,6 +196,37 @@ export default function ArenaPage() {
           </div>
         )}
 
+        <div className="mb-6 glass-panel rounded-2xl p-6 border border-purple-400/20 bg-gradient-to-br from-purple-500/[0.08] via-white/[0.02] to-transparent flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-5">
+            <div className="relative">
+              <div
+                className="w-20 h-20 rounded-full"
+                style={{
+                  background: 'radial-gradient(circle at 30% 30%, #a78bfa, transparent 70%)',
+                  filter: 'blur(2px)',
+                }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="font-serif text-2xl text-white">
+                  {Math.round(liveScore * 100)}%
+                </span>
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] font-mono uppercase tracking-wider text-purple-300 mb-1">Compatibility score</p>
+              <p className="font-serif text-5xl sm:text-6xl text-white leading-none">
+                {liveScore.toFixed(2)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2 max-w-md">
+            <span className="text-sm text-zinc-300 leading-relaxed">
+              {result?.compatibility.summary || 'Esperando conversación'}
+            </span>
+            <ChevronRight size={16} className="text-zinc-500 flex-shrink-0 mt-0.5" />
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr_1fr] gap-4 min-h-[500px]">
           <AgentPanel name={`Agent · ${session.activeAgentName}`} tagline={session.activeAgentId} accent="#a78bfa" align="left" />
 
@@ -272,7 +303,7 @@ export default function ArenaPage() {
                             {new Date(conversation.created_at).toLocaleString()}
                           </p>
                         </div>
-                        <span className="text-xs text-zinc-300">
+                        <span className="font-serif text-2xl text-purple-300 leading-none">
                           {Math.round(conversation.compatibility.score * 100)}%
                         </span>
                       </div>
@@ -295,20 +326,6 @@ export default function ArenaPage() {
           </div>
         </div>
 
-        <div className="mt-4 glass-panel rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 mb-1">Compatibility score</p>
-            <p className="font-serif text-4xl text-white">
-              {liveScore.toFixed(2)}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-zinc-400">
-              {result?.compatibility.summary || 'Esperando conversación'}
-            </span>
-            <ChevronRight size={14} className="text-zinc-600" />
-          </div>
-        </div>
       </main>
     </div>
   )
