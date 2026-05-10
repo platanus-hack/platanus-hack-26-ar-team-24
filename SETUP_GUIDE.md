@@ -1,4 +1,4 @@
-# Setup Guide para AgentLink - Local Development
+# Setup Guide para knowAhuman - Local Development
 
 ## Para tus amigos: Cómo desplegar localmente
 
@@ -66,7 +66,7 @@ cd ../..
 **Frontend - apps/web/.env.local:**
 ```
 NEXT_PUBLIC_API_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME=AgentLink
+NEXT_PUBLIC_APP_NAME=knowAhuman
 NEXT_PUBLIC_SUPABASE_URL=<tu-supabase-url>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<tu-anon-key>
 ```
@@ -160,4 +160,4 @@ Si tus amigos tienen problemas:
 
 ---
 
-**Creado para AgentLink Hackathon 2026**
+**Creado para knowAhuman Hackathon 2026**

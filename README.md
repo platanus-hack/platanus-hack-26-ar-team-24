@@ -2,7 +2,7 @@
 
 **Platanus Hack 26 | Team 24 | Buenos Aires | Track: 🛸 Future**
 
-<img src="./project-logo.png" alt="AgentLink Logo" width="200" />
+<img src="./project-logo.png" alt="knowAhuman Logo" width="200" />
 
 ---
 
@@ -110,7 +110,7 @@ npm run dev
 ## 🏗️ Architecture
 
 ```
-AgentLink/
+knowAhuman/
 ├── services/api/                          # Express + TypeScript Backend ✅
 │   ├── src/
 │   │   ├── controllers/                  # Request handlers

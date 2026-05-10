@@ -1,7 +1,7 @@
 {
   "name": "@platanus-hack/web",
   "version": "1.0.0",
-  "description": "Next.js frontend for AgentLink - AI platform for startup team matching",
+  "description": "Next.js frontend for knowAhuman - AI platform for startup team matching",
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",

@@ -40,9 +40,11 @@ export default function LandingPage() {
         }}
       />
 
-      <header className="relative z-10 max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
-        <Logo />
-        <div className="flex items-center gap-6 text-sm text-zinc-400">
+      <header className="relative z-10 max-w-6xl mx-auto px-6 py-6">
+        <div className="absolute left-1/2 top-6 -translate-x-1/2">
+          <Logo showMark={false} wordmarkClassName="font-sans text-xl sm:text-2xl font-extralight tracking-[0.28em] text-zinc-100 pl-[0.28em]" />
+        </div>
+        <div className="flex items-center justify-end gap-6 text-sm text-zinc-400">
           <Link href="/auth" className="hover:text-white transition-colors hidden sm:inline">
             Iniciar sesión
           </Link>
@@ -50,12 +52,7 @@ export default function LandingPage() {
       </header>
 
       {/* HERO */}
-      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-24 sm:pt-36 pb-20 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-[11px] font-mono text-zinc-400 mb-10 tracking-wider uppercase">
-          <span className="w-1 h-1 rounded-full bg-purple-400 animate-pulse" />
-          knowAhuman
-        </div>
-
+      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-28 sm:pt-40 pb-20 text-center">
         <h1 className="font-serif text-[44px] sm:text-7xl lg:text-[88px] leading-[1.02] tracking-tight text-white mb-10">
           Las conexiones<br />
           que importan no se buscan.<br />
@@ -63,7 +60,7 @@ export default function LandingPage() {
         </h1>
 
         <p className="text-base sm:text-lg text-zinc-400 max-w-xl mx-auto leading-relaxed mb-12">
-          AgentLink simula reuniones antes de que existan.
+          knowAhuman simula reuniones antes de que existan.
           Tu próximo cofounder, mentor o socio ya conversó con tu agente —
           vos solo ves lo que pasó el filtro.
         </p>
@@ -106,7 +103,7 @@ export default function LandingPage() {
             <span className="italic text-purple-300"> Algo se rompió.</span>&rdquo;
           </p>
           <p className="text-sm text-zinc-500 relative">
-            Por qué construimos AgentLink — equipo fundador
+            Por qué construimos knowAhuman — equipo fundador
           </p>
         </div>
       </section>
@@ -158,7 +155,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="relative z-10 max-w-6xl mx-auto px-6 py-8 border-t border-white/5 flex flex-col sm:flex-row gap-3 items-center justify-between text-xs text-zinc-500">
-        <span>AgentLink · 2026</span>
+        <span>knowAhuman · 2026</span>
         <span className="font-serif italic">Where agents find your people.</span>
       </footer>
     </div>

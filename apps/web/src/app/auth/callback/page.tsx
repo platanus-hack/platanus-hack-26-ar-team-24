@@ -60,8 +60,12 @@ export default function CallbackPage() {
         }}
       />
 
-      <div className="absolute top-6 left-6">
-        <Logo href="/landing" />
+      <div className="absolute top-6 left-1/2 -translate-x-1/2">
+        <Logo
+          href="/landing"
+          showMark={false}
+          wordmarkClassName="font-sans text-xl sm:text-2xl font-extralight tracking-[0.28em] text-zinc-100 pl-[0.28em]"
+        />
       </div>
 
       <div className="relative w-full max-w-md text-center">

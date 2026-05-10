@@ -2,7 +2,7 @@
 
 ## Contexto del Proyecto
 
-**Nombre:** AgentLink
+**Nombre:** knowAhuman
 **Descripción:** Plataforma AI-mediated para conectar talentos (job seekers) con startups founders
 **Track:** 🛸 Future
 **Estado:** Backend MVP completamente funcional ✅ | Frontend en desarrollo 🔨

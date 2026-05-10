@@ -1,4 +1,4 @@
-# AgentLink Project Status
+# knowAhuman Project Status
 
 **Fecha:** 2026-05-09 | **Estado General:** MVP Backend ✅ | Frontend 🔨
 
@@ -191,7 +191,7 @@ npm run dev
 Create `apps/web/.env.local`:
 ```
 NEXT_PUBLIC_API_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME=AgentLink
+NEXT_PUBLIC_APP_NAME=knowAhuman
 ```
 
 ### 3. API Integration

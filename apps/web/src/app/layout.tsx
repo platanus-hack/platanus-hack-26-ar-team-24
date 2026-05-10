@@ -15,7 +15,7 @@ const lora = Lora({
 })
 
 export const metadata: Metadata = {
-  title: 'AgentLink — IA para reconexión humana',
+  title: 'knowAhuman — IA para reconexión humana',
   description: 'Tu IA clona tu personalidad para encontrar conexiones genuinas.',
 }
 

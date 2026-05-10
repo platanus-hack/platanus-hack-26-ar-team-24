@@ -1,4 +1,4 @@
-# AgentLink Backend API - Frontend Integration Guide
+# knowAhuman Backend API - Frontend Integration Guide
 
 ## Base URL
 ```
@@ -540,4 +540,3 @@ console.log(allMatches);
 3. **Match Score**: Rango 0.00 a 1.00 (0% a 100% compatible)
 4. **Data Persistance**: Todos los datos se guardan en Supabase PostgreSQL con RLS policies
 5. **RLS Policies**: Users solo ven sus propios datos de perfil, pero pueden leer todos los perfiles públicos
-

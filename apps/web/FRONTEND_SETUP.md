@@ -1,4 +1,4 @@
-# AgentLink Frontend - Setup & Testing Guide
+# knowAhuman Frontend - Setup & Testing Guide
 
 ## ✅ Status
 
@@ -54,7 +54,7 @@ apps/web/
 - Beautiful gradient hero section
 - Two user paths: Talent & Founder
 - Clear value proposition
-- How AgentLink works explanation
+- How knowAhuman works explanation
 
 ### ✅ Authentication
 - User registration with role selection (talent/founder)
@@ -212,7 +212,7 @@ npm run type-check
 Located in `.env.local`:
 ```
 NEXT_PUBLIC_API_URL=http://localhost:3000
-NEXT_PUBLIC_APP_NAME=AgentLink
+NEXT_PUBLIC_APP_NAME=knowAhuman
 ```
 
 Change `NEXT_PUBLIC_API_URL` for production deployment.

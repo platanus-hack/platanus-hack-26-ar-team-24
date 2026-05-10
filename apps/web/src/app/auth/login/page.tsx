@@ -56,9 +56,7 @@ export default function LoginPage() {
           }}
         />
 
-        <div className="relative">
-          <Logo href="/landing" />
-        </div>
+        <div className="relative" />
 
         <div className="relative max-w-md">
           <Quote size={28} className="text-purple-400/50 mb-6" />
@@ -89,6 +87,13 @@ export default function LoginPage() {
 
       {/* RIGHT — form side */}
       <main className="relative flex items-center justify-center px-6 py-12 sm:py-16">
+        <div className="absolute top-6 left-1/2 -translate-x-1/2">
+          <Logo
+            href="/landing"
+            showMark={false}
+            wordmarkClassName="font-sans text-xl sm:text-2xl font-extralight tracking-[0.28em] text-zinc-100 pl-[0.28em]"
+          />
+        </div>
         <Link
           href="/auth"
           className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors"
@@ -98,10 +103,6 @@ export default function LoginPage() {
         </Link>
 
         <div className="w-full max-w-md">
-          <div className="lg:hidden mb-10">
-            <Logo />
-          </div>
-
           <p className="text-xs font-mono text-zinc-500 mb-3 tracking-wider uppercase">
             Email y contraseña
           </p>

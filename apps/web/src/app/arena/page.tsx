@@ -1,8 +1,9 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import AppNav from '@/components/layout/AppNav'
-import { Bot, ChevronRight, History } from 'lucide-react'
+import { ArrowRight, Bot, ChevronRight, History } from 'lucide-react'
 import { api } from '@/lib/api'
 import { getAgentSession } from '@/lib/agent-session'
 import type { AgentSession } from '@/lib/agent-session'
@@ -119,9 +120,18 @@ export default function ArenaPage() {
   if (!session) {
     return (
       <div className="min-h-screen bg-ink-950 text-white flex items-center justify-center px-6 text-center">
-        <div>
+        <div className="max-w-xl">
           <h1 className="font-serif text-4xl mb-3">No hay agente activo.</h1>
-          <p className="text-zinc-400">Completá un onboarding antes de usar la arena.</p>
+          <p className="text-zinc-400 mb-6">
+            Completá un onboarding antes de usar la arena.
+          </p>
+          <Link
+            href="/onboarding/candidate"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-medium text-black transition-colors hover:bg-zinc-200"
+          >
+            Crear agente
+            <ArrowRight size={15} />
+          </Link>
         </div>
       </div>
     )

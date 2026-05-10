@@ -1,4 +1,4 @@
--- AgentLink - Database Schema
+-- knowAhuman - Database Schema
 -- AI-powered platform for connecting talent with startups
 -- Run this script in Supabase SQL Editor
 
