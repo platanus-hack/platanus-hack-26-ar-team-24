@@ -20,7 +20,7 @@ export default function AgentLabPage() {
   const [error, setError] = useState('')
   const [availableCandidates, setAvailableCandidates] = useState(0)
   const [purpose, setPurpose] = useState(DEFAULT_PURPOSE)
-  const [limit, setLimit] = useState(8)
+  const [limit, setLimit] = useState(0)
   const [minScore, setMinScore] = useState(0)
   const [result, setResult] = useState<MatchmakeResponse | null>(null)
 
@@ -170,7 +170,7 @@ export default function AgentLabPage() {
                 >
                   <input
                     type="range"
-                    min={1}
+                    min={0}
                     max={Math.max(availableCandidates, 1)}
                     value={limit}
                     onChange={(e) => setLimit(Number(e.target.value))}

@@ -17,6 +17,11 @@ const lora = Lora({
 export const metadata: Metadata = {
   title: 'knowAhuman — IA para reconexión humana',
   description: 'Tu IA clona tu personalidad para encontrar conexiones genuinas.',
+  icons: {
+    icon: '/images/agentlink-logo.png',
+    shortcut: '/images/agentlink-logo.png',
+    apple: '/images/agentlink-logo.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
