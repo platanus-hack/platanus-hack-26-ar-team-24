@@ -68,6 +68,19 @@ const compatibilityService = new CompatibilityService(
   env.MATCHMAKING_CONCURRENCY
 );
 
+async function assertOwnedAgent(
+  ownerUserId: string,
+  ownerAccessToken: string,
+  agentId: string
+): Promise<void> {
+  const ownedAgents = await persistenceService.listAgentIdentities(ownerUserId, ownerAccessToken);
+  const ownsAgent = ownedAgents.some((agent) => agent.agent_id === agentId);
+
+  if (!ownsAgent) {
+    throw new HttpError("Agent not found", 404);
+  }
+}
+
 class HttpError extends Error {
   constructor(message: string, readonly statusCode: number) {
     super(message);
@@ -119,8 +132,9 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true, runtimeUrl: env.OPENCLAW_RUNTIME_URL });
 });
 
-app.get("/agents", async (_req, res, next) => {
+app.get("/agents", async (req, res, next) => {
   try {
+    await getAuthenticatedUserId(req);
     const agents = await runtimeClient.listAgents();
     res.json(agents);
   } catch (error) {
@@ -130,7 +144,11 @@ app.get("/agents", async (_req, res, next) => {
 
 app.get("/agents/:id/files", async (req, res, next) => {
   try {
+    const ownerAccessToken = getBearerToken(req);
+    const ownerUserId = await getAuthenticatedUserId(req);
     const agentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    await assertOwnedAgent(ownerUserId, ownerAccessToken, agentId);
+
     const files = await runtimeClient.getFiles(agentId);
     res.json({ agentId, ...files });
   } catch (error) {
@@ -184,6 +202,8 @@ app.post("/conversations/run", async (req, res, next) => {
     const ownerAccessToken = getBearerToken(req);
     const ownerUserId = await getAuthenticatedUserId(req);
     const input = conversationConfigSchema.parse(req.body);
+    await assertOwnedAgent(ownerUserId, ownerAccessToken, input.agentA);
+
     const result = await compatibilityService.runConversation(input, ownerUserId, ownerAccessToken);
     res.json(result);
   } catch (error) {
@@ -197,6 +217,8 @@ app.post("/agents/:id/matchmake", async (req, res, next) => {
     const ownerUserId = await getAuthenticatedUserId(req);
     const agentId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const input = matchmakingRequestSchema.parse(req.body);
+    await assertOwnedAgent(ownerUserId, ownerAccessToken, agentId);
+
     const result = await compatibilityService.runPurposeMatchmaking(
       agentId,
       input,

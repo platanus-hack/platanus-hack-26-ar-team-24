@@ -54,11 +54,11 @@ class ApiClient {
   }
 
   async listAgents() {
-    return this.request<AgentListResponse>('/agents', undefined, false)
+    return this.request<AgentListResponse>('/agents')
   }
 
   async getAgentFiles(agentId: string) {
-    return this.request<AgentFilesResponse>(`/agents/${agentId}/files`, undefined, false)
+    return this.request<AgentFilesResponse>(`/agents/${agentId}/files`)
   }
 
   async listAgentIdentities() {

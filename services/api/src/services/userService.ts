@@ -1,6 +1,8 @@
 import { supabaseClient } from '../config/supabase.js';
 import { User, HttpError } from '../types/index.js';
 
+type PublicUser = Omit<User, 'email'>;
+
 export const userService = {
   async getUserById(id: string): Promise<User> {
     const { data, error } = await supabaseClient
@@ -41,10 +43,10 @@ export const userService = {
     return data;
   },
 
-  async getAllCandidates(): Promise<User[]> {
+  async getAllCandidates(): Promise<PublicUser[]> {
     const { data, error } = await supabaseClient
       .from('users')
-      .select('*')
+      .select('id, username, user_type, created_at, updated_at')
       .eq('user_type', 'talent');
 
     if (error) {
@@ -54,10 +56,10 @@ export const userService = {
     return data || [];
   },
 
-  async getAllFounders(): Promise<User[]> {
+  async getAllFounders(): Promise<PublicUser[]> {
     const { data, error } = await supabaseClient
       .from('users')
-      .select('*')
+      .select('id, username, user_type, created_at, updated_at')
       .eq('user_type', 'founder');
 
     if (error) {
