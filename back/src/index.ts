@@ -19,7 +19,12 @@ const envSchema = z.object({
   JUDGE_AGENT_ID: z.string().min(1).default("judge"),
   GRADER_AGENT_ID: z.string().min(1).default("grader"),
   GITHUB_TOKEN: z.string().optional(),
-  ALLOWED_ORIGINS: z.string().default("http://localhost:3001,http://127.0.0.1:3001,https://knewa-human.vercel.app")
+  MATCHMAKING_CONCURRENCY: z.coerce.number().int().min(1).max(10).default(3),
+  ALLOWED_ORIGINS: z
+    .string()
+    .default(
+      "http://localhost:3001,http://127.0.0.1:3001,https://knewa-human.vercel.app"
+    )
 });
 
 const env = envSchema.parse(process.env);
@@ -59,7 +64,8 @@ const compatibilityService = new CompatibilityService(
   env.GRADER_AGENT_ID,
   env.JUDGE_AGENT_ID,
   persistenceService,
-  githubProfileService
+  githubProfileService,
+  env.MATCHMAKING_CONCURRENCY
 );
 
 class HttpError extends Error {
@@ -220,6 +226,25 @@ app.get("/conversations/:id", async (req, res, next) => {
     }
 
     res.json({ conversation });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/dashboard/analytics", async (req, res, next) => {
+  try {
+    const ownerAccessToken = getBearerToken(req);
+    const ownerUserId = await getAuthenticatedUserId(req);
+    const agentId =
+      typeof req.query.agentId === "string" && req.query.agentId.trim().length > 0
+        ? req.query.agentId.trim()
+        : undefined;
+    const analytics = await persistenceService.getDashboardAnalytics(
+      ownerUserId,
+      ownerAccessToken,
+      agentId
+    );
+    res.json({ analytics });
   } catch (error) {
     next(error);
   }

@@ -12,7 +12,7 @@ const envSchema = z.object({
   OPENCLAW_GATEWAY_BIND: z.enum(["loopback", "lan", "tailnet", "auto", "custom"]).default("loopback"),
   OPENCLAW_STATE_DIR: z.string().default("/data/.openclaw"),
   OPENCLAW_WORKSPACE_ROOT: z.string().default("/data/workspaces"),
-  OPENCLAW_DEFAULT_MODEL: z.string().default("openai/gpt-4o-mini"),
+  OPENCLAW_DEFAULT_MODEL: z.string().default("google/gemini-2.5-flash-lite-preview-09-2025"),
   OPENAI_API_KEY: z.string().optional()
 });
 

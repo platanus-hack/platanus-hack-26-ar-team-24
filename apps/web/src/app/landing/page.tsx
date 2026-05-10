@@ -53,7 +53,7 @@ export default function LandingPage() {
       <section className="relative z-10 max-w-5xl mx-auto px-6 pt-24 sm:pt-36 pb-20 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-[11px] font-mono text-zinc-400 mb-10 tracking-wider uppercase">
           <span className="w-1 h-1 rounded-full bg-purple-400 animate-pulse" />
-          Reconexión humana mediada por IA
+          knowAhuman
         </div>
 
         <h1 className="font-serif text-[44px] sm:text-7xl lg:text-[88px] leading-[1.02] tracking-tight text-white mb-10">

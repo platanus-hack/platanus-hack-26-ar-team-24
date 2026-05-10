@@ -5,6 +5,8 @@ export const userProfileSchema = z.object({
   age: z.union([z.string(), z.number()]).optional(),
   location: z.string().optional(),
   githubUrl: z.string().url().optional(),
+  linkedinUrl: z.string().url().optional(),
+  xUrl: z.string().url().optional(),
   bio: z.string().optional(),
   personal: z.record(z.string(), z.unknown()).default({}),
   social: z.record(z.string(), z.unknown()).default({}),

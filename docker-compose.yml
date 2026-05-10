@@ -30,6 +30,7 @@ services:
       OPENCLAW_RUNTIME_URL: http://openclaw-runtime:8080
       OPENCLAW_ADMIN_API_TOKEN: ${OPENCLAW_ADMIN_API_TOKEN:-change-me-admin-token}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      MATCHMAKING_CONCURRENCY: ${MATCHMAKING_CONCURRENCY:-3}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3001,http://127.0.0.1:3001,https://knewa-human.vercel.app}
       SUPABASE_URL: ${SUPABASE_URL:-https://zzwfvorthznbkpgsidrq.supabase.co}
       SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-sb_publishable_MNuzV27PQzxHNBWDP3Geow_AJ_eVQ3-}

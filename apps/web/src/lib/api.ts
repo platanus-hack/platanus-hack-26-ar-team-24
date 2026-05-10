@@ -1,6 +1,7 @@
 import type {
   AgentFilesResponse,
   AgentListResponse,
+  DashboardAnalyticsResponse,
   ConversationDetailResponse,
   ConversationsListResponse,
   ConversationRequest,
@@ -86,6 +87,11 @@ class ApiClient {
 
   async getConversation(conversationId: string) {
     return this.request<ConversationDetailResponse>(`/conversations/${conversationId}`)
+  }
+
+  async getDashboardAnalytics(agentId?: string) {
+    const query = agentId ? `?agentId=${encodeURIComponent(agentId)}` : ''
+    return this.request<DashboardAnalyticsResponse>(`/dashboard/analytics${query}`)
   }
 }
 

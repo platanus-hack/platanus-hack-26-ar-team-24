@@ -11,6 +11,8 @@ export interface UserProfilePayload {
   age?: string | number
   location?: string
   githubUrl?: string
+  linkedinUrl?: string
+  xUrl?: string
   bio?: string
   personal?: Record<string, unknown>
   social?: Record<string, unknown>
@@ -106,6 +108,74 @@ export interface ConversationDetailResponse {
   conversation: StoredConversation
 }
 
+export interface DashboardSignal {
+  label: string
+  count: number
+}
+
+export interface DashboardAnalytics {
+  agentId: string | null
+  summary: {
+    totalSimulations: number
+    matchRate: number
+    averageScore: number
+    compatibleCount: number
+    incompatibleCount: number
+    undecidedCount: number
+    conversationsThisWeek: number
+    recentMatchDelta: number
+    averageMessages: number
+    averageRounds: number
+    thresholdScore: number
+  }
+  trend: Array<{
+    date: string
+    score: number
+    matches: number
+    total: number
+  }>
+  scoreBands: {
+    high: number
+    medium: number
+    low: number
+  }
+  recentConversations: Array<{
+    id: string
+    counterpartId: string
+    counterpartLabel: string
+    counterpartRole: string | null
+    score: number
+    outcome: 'match' | 'no_match' | 'continue'
+    summary: string
+    sharedInterests: string[]
+    reasons: string[]
+    createdAt: string
+    transcriptCount: number
+  }>
+  topConnections: Array<{
+    counterpartId: string
+    counterpartLabel: string
+    counterpartRole: string | null
+    averageScore: number
+    matchRate: number
+    conversations: number
+    matches: number
+    lastConversationAt: string
+    strongestSummary: string
+  }>
+  sharedInterestSignals: DashboardSignal[]
+  incompatibilitySignals: DashboardSignal[]
+  insights: Array<{
+    kind: 'pattern' | 'warning' | 'calibration'
+    title: string
+    body: string
+  }>
+}
+
+export interface DashboardAnalyticsResponse {
+  analytics: DashboardAnalytics
+}
+
 export interface MatchmakeRequest {
   purpose: string
   turnsPerAgent?: number
@@ -120,6 +190,13 @@ export interface MatchmakeResult {
   conversationId: string
   compatibility: CompatibilityDecision
   transcript: TranscriptMessage[]
+  candidateProfile?: {
+    name: string
+    role?: string | null
+    githubUrl?: string
+    linkedinUrl?: string
+    xUrl?: string
+  }
 }
 
 export interface MatchmakeResponse {

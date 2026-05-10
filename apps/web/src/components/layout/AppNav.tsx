@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { LogOut, ChevronDown, Compass, LayoutDashboard, Radio } from 'lucide-react'
+import { LogOut, ChevronDown, Compass, LayoutDashboard, Radio, Sparkles } from 'lucide-react'
 import Logo from './Logo'
 import { useAuth } from '@/hooks/useAuth'
 import { getAgentSession } from '@/lib/agent-session'
@@ -28,7 +28,17 @@ const NAV_ITEMS: NavItem[] = [
     href: '/dashboard',
     label: 'Dashboard',
     icon: <LayoutDashboard size={14} />,
-    match: (p) => p === '/dashboard' || p.startsWith('/dashboard/'),
+    match: (p) =>
+      p === '/dashboard' ||
+      p === '/dashboard/founder' ||
+      p === '/dashboard/talent' ||
+      p.startsWith('/dashboard/simulations/'),
+  },
+  {
+    href: '/dashboard/lab',
+    label: 'Pruebas',
+    icon: <Sparkles size={14} />,
+    match: (p) => p === '/dashboard/lab',
   },
   {
     href: '/onboarding/sync',

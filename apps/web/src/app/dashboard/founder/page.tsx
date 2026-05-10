@@ -185,6 +185,19 @@ export default function FounderDashboard() {
                       <p className="text-sm text-zinc-400 leading-relaxed">
                         {match.compatibility.summary}
                       </p>
+                      {match.candidateProfile && hasSocialLinks(match.candidateProfile) && (
+                        <div className="mt-4 flex items-center gap-2">
+                          <SocialLink href={match.candidateProfile.githubUrl} label="GitHub">
+                            <GithubMark />
+                          </SocialLink>
+                          <SocialLink href={match.candidateProfile.linkedinUrl} label="LinkedIn">
+                            <LinkedinMark />
+                          </SocialLink>
+                          <SocialLink href={match.candidateProfile.xUrl} label="X">
+                            <XMark />
+                          </SocialLink>
+                        </div>
+                      )}
                     </div>
                     <div className="text-right">
                       <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500 mb-1">
@@ -249,6 +262,58 @@ export default function FounderDashboard() {
         )}
       </main>
     </div>
+  )
+}
+
+function SocialLink({
+  href,
+  label,
+  children,
+}: {
+  href?: string
+  label: string
+  children: React.ReactNode
+}) {
+  if (!href) return null
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={label}
+      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-300 transition-colors hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+    >
+      {children}
+    </a>
+  )
+}
+
+function hasSocialLinks(profile: NonNullable<MatchmakeResponse['matches'][number]['candidateProfile']>) {
+  return Boolean(profile.githubUrl || profile.linkedinUrl || profile.xUrl)
+}
+
+function GithubMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+      <path d="M12 .5a12 12 0 0 0-3.79 23.39c.6.11.82-.26.82-.58v-2.04c-3.34.73-4.04-1.42-4.04-1.42-.55-1.38-1.33-1.75-1.33-1.75-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.22 1.84 1.22 1.07 1.81 2.8 1.29 3.49.99.11-.76.42-1.29.76-1.58-2.66-.3-5.47-1.31-5.47-5.86 0-1.3.47-2.36 1.23-3.19-.12-.3-.53-1.5.12-3.13 0 0 1.01-.32 3.3 1.22a11.53 11.53 0 0 1 6 0c2.28-1.54 3.29-1.22 3.29-1.22.65 1.63.24 2.83.12 3.13.77.83 1.23 1.89 1.23 3.19 0 4.56-2.81 5.55-5.49 5.84.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.58A12 12 0 0 0 12 .5Z" />
+    </svg>
+  )
+}
+
+function LinkedinMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+      <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.11 1 2.48 1h.02C3.87 1 4.98 2.12 4.98 3.5ZM.5 8h4V23h-4ZM8 8h3.83v2.05h.05c.53-1.01 1.84-2.08 3.79-2.08 4.05 0 4.8 2.67 4.8 6.14V23h-4v-7.87c0-1.88-.03-4.29-2.62-4.29-2.62 0-3.02 2.05-3.02 4.16V23H8Z" />
+    </svg>
+  )
+}
+
+function XMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4 fill-current" aria-hidden="true">
+      <path d="M18.9 2H22l-6.77 7.74L23.2 22h-6.25l-4.9-7.16L5.8 22H2.68l7.24-8.28L.8 2h6.4l4.43 6.58L18.9 2Zm-1.1 18h1.73L6.27 3.9H4.4L17.8 20Z" />
+    </svg>
   )
 }
 

@@ -17,6 +17,8 @@ type FormState = {
   age: string
   location: string
   githubUrl: string
+  linkedinUrl: string
+  xUrl: string
   emotionalTone: string
   deepFrustration: string
   emotionalDrive: string
@@ -106,6 +108,8 @@ const INITIAL_STATE: FormState = {
   age: '',
   location: '',
   githubUrl: '',
+  linkedinUrl: '',
+  xUrl: '',
   emotionalTone: '',
   deepFrustration: '',
   emotionalDrive: '',
@@ -160,8 +164,18 @@ export default function UnifiedAgentOnboarding() {
     }
 
     const githubUrl = normalizeGithubUrl(form.githubUrl)
+    const linkedinUrl = normalizeLinkedinUrl(form.linkedinUrl)
+    const xUrl = normalizeXUrl(form.xUrl)
     if (form.githubUrl.trim() && !githubUrl) {
       setError('Ingresá una URL válida de GitHub.')
+      return
+    }
+    if (form.linkedinUrl.trim() && !linkedinUrl) {
+      setError('Ingresá una URL válida de LinkedIn.')
+      return
+    }
+    if (form.xUrl.trim() && !xUrl) {
+      setError('Ingresá una URL válida de X.')
       return
     }
 
@@ -174,6 +188,8 @@ export default function UnifiedAgentOnboarding() {
         age: form.age || undefined,
         location: form.location || undefined,
         githubUrl: githubUrl || undefined,
+        linkedinUrl: linkedinUrl || undefined,
+        xUrl: xUrl || undefined,
         bio: buildBio(form),
         personal: {
           emotionalProfile: form.emotionalScores,
@@ -331,17 +347,41 @@ export default function UnifiedAgentOnboarding() {
                     </Field>
                   </div>
 
-                  <Field label="URL de GitHub (opcional)">
-                    <input
-                      type="url"
-                      value={form.githubUrl}
-                      onChange={(event) =>
-                        setForm((current) => ({ ...current, githubUrl: event.target.value }))
-                      }
-                      placeholder="https://github.com/tu-usuario"
-                      className={inputClass}
-                    />
-                  </Field>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Field label="GitHub" align="grid">
+                      <input
+                        type="url"
+                        value={form.githubUrl}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, githubUrl: event.target.value }))
+                        }
+                        placeholder="https://github.com/tu-usuario"
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="LinkedIn" align="grid">
+                      <input
+                        type="url"
+                        value={form.linkedinUrl}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, linkedinUrl: event.target.value }))
+                        }
+                        placeholder="https://linkedin.com/in/tu-perfil"
+                        className={inputClass}
+                      />
+                    </Field>
+                    <Field label="X" align="grid">
+                      <input
+                        type="url"
+                        value={form.xUrl}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, xUrl: event.target.value }))
+                        }
+                        placeholder="https://x.com/tu-usuario"
+                        className={inputClass}
+                      />
+                    </Field>
+                  </div>
 
                   <div className="rounded-[1.5rem] border border-white/8 bg-black/15 px-5 py-5">
                     <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500 mb-2">
@@ -654,6 +694,32 @@ function normalizeGithubUrl(value: string) {
       parsed.hostname === 'github.com' || parsed.hostname === 'www.github.com'
 
     return isGithubHost ? parsed.toString() : null
+  } catch {
+    return null
+  }
+}
+
+function normalizeLinkedinUrl(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+
+  try {
+    const parsed = new URL(trimmed)
+    const hostname = parsed.hostname.replace(/^www\./, '')
+    return hostname === 'linkedin.com' ? parsed.toString() : null
+  } catch {
+    return null
+  }
+}
+
+function normalizeXUrl(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+
+  try {
+    const parsed = new URL(trimmed)
+    const hostname = parsed.hostname.replace(/^www\./, '')
+    return hostname === 'x.com' || hostname === 'twitter.com' ? parsed.toString() : null
   } catch {
     return null
   }

@@ -10,7 +10,6 @@ import {
   Radar,
   Sparkles,
   Target,
-  Zap,
 } from 'lucide-react'
 import AppNav from '@/components/layout/AppNav'
 import { getAgentSession } from '@/lib/agent-session'

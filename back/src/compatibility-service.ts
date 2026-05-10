@@ -34,13 +34,38 @@ const PERSONAL_TOPIC_AGENDA = [
   }
 ] as const;
 
+type MatchmakingMatchResult = {
+  candidateId: string;
+  conversationId: string;
+  compatibility: JudgeDecision;
+  transcript: TranscriptMessage[];
+  candidateProfile?: {
+    name: string;
+    role: string | null;
+    githubUrl?: string;
+    linkedinUrl?: string;
+    xUrl?: string;
+  };
+};
+
+type MatchmakingFailureResult = {
+  candidateId: string;
+  error: string;
+};
+
+type MatchmakingSettledResult =
+  | { kind: "match"; value: MatchmakingMatchResult }
+  | { kind: "failure"; value: MatchmakingFailureResult }
+  | { kind: "skip" };
+
 export class CompatibilityService {
   constructor(
     private runtime: RuntimeClient,
     private graderAgentId: string,
     private judgeAgentId: string,
     private persistence: PersistenceService,
-    private githubProfileService?: GithubProfileService
+    private githubProfileService?: GithubProfileService,
+    private matchmakingConcurrency = 3
   ) {}
 
   async createProfiledAgent(
@@ -264,33 +289,79 @@ export class CompatibilityService {
       .filter((candidateId): candidateId is string => Boolean(candidateId) && !excludedIds.has(candidateId))
       .slice(0, request.limit ?? Number.MAX_SAFE_INTEGER);
 
-    const matches = [];
-    const failures = [];
+    const settledResults = await this.runWithConcurrency<string, MatchmakingSettledResult>(
+      candidates,
+      async (candidateId) => {
+        try {
+          const result = await this.runConversation({
+            agentA: agentId,
+            agentB: candidateId,
+            openingMessage: this.buildPurposeOpeningMessage(agentId, candidateId, request.purpose),
+            turnsPerAgent: request.turnsPerAgent,
+            maxRounds: request.maxRounds,
+            thinking: request.thinking
+          }, ownerUserId, ownerAccessToken);
 
-    for (const candidateId of candidates) {
-      try {
-        const result = await this.runConversation({
-          agentA: agentId,
-          agentB: candidateId,
-          openingMessage: this.buildPurposeOpeningMessage(agentId, candidateId, request.purpose),
-          turnsPerAgent: request.turnsPerAgent,
-          maxRounds: request.maxRounds,
-          thinking: request.thinking
-        }, ownerUserId, ownerAccessToken);
+          if (result.compatibility.score >= request.minScore) {
+            return {
+              kind: "match" as const,
+              value: {
+                candidateId,
+                conversationId: result.conversationId,
+                compatibility: result.compatibility,
+                transcript: result.transcript
+              }
+            };
+          }
 
-        if (result.compatibility.score >= request.minScore) {
-          matches.push({
-            candidateId,
-            conversationId: result.conversationId,
-            compatibility: result.compatibility,
-            transcript: result.transcript
-          });
+          return {
+            kind: "skip" as const
+          };
+        } catch (error) {
+          return {
+            kind: "failure" as const,
+            value: {
+              candidateId,
+              error: error instanceof Error ? error.message : "Unexpected error"
+            }
+          };
         }
-      } catch (error) {
-        failures.push({
-          candidateId,
-          error: error instanceof Error ? error.message : "Unexpected error"
-        });
+      }
+    );
+
+    const matches: MatchmakingMatchResult[] = [];
+    const failures: MatchmakingFailureResult[] = [];
+
+    for (const result of settledResults) {
+      if (result.kind === "match") {
+        matches.push(result.value);
+      }
+
+      if (result.kind === "failure") {
+        failures.push(result.value);
+      }
+    }
+
+    if (ownerUserId && ownerAccessToken && matches.length > 0) {
+      const identityMap = await this.persistence.getAgentIdentityMap(
+        ownerUserId,
+        ownerAccessToken,
+        matches.map((match) => match.candidateId)
+      );
+
+      for (const match of matches) {
+        const identity = identityMap.get(match.candidateId);
+        if (!identity) {
+          continue;
+        }
+
+        match.candidateProfile = {
+          name: identity.agent_name,
+          role: identity.agent_role,
+          githubUrl: identity.source_profile?.githubUrl,
+          linkedinUrl: identity.source_profile?.linkedinUrl,
+          xUrl: identity.source_profile?.xUrl
+        };
       }
     }
 
@@ -427,9 +498,12 @@ export class CompatibilityService {
         `Tu próximo mensaje será enviado DIRECTAMENTE a ${args.listener}.`,
         "No le respondas al usuario, al operador, al configurador ni a quien armó la simulación.",
         "No respondas al contexto como si te hubieran hecho esa pregunta a ti. Ese contexto NO es un mensaje del otro agente.",
+        "El opening message es una intención de búsqueda del usuario que lanzó la simulación. NO es una frase dicha por el otro agente y NO debes contestarle a esa voz.",
         "Sé auténtico, responde con tu criterio genuino, con opiniones reales y sin intentar caer bien artificialmente.",
         "Puedes coincidir, disentir, cuestionar ideas y debatir con naturalidad. No estás obligado a gustarle al otro agente.",
         "Responde como una persona hablando con otra persona.",
+        "Habla de intereses, experiencias, ejemplos personales, hábitos, curiosidades y fricciones reales. No conviertas la charla en un cuestionario seco de opiniones abstractas.",
+        "Evita el patrón rígido de 'yo valoro X, ¿y tú?'. Prioriza una charla más orgánica: saludo, comentario propio, referencia a algo concreto y, si hace falta, una pregunta natural.",
         "No describas la conversación desde afuera. No uses fórmulas como 'Tu mensaje ha sido enviado a...', 'Él respondió:', 'ella dijo:', ni comillas narrativas.",
         "Devuelve solo el texto que realmente le dirías al otro agente.",
         `TEMA OBLIGATORIO DE ESTA RONDA (${args.round}/${PERSONAL_TOPIC_AGENDA.length}): ${args.topicLabel}.`,
@@ -440,8 +514,9 @@ export class CompatibilityService {
         "",
         "Ese contexto describe qué busca explorar esta conversación. No lo trates como un mensaje textual del otro agente.",
         "Tu tarea es abrir la charla de forma natural, como en la vida real, usando ese contexto solo como orientación.",
-        `Empieza tú la conversación con una observación, opinión o pregunta genuina dirigida a ${args.listener}.`,
+        `Empieza tú la conversación con un saludo real dirigido a ${args.listener}. La primera palabra debe ser 'Hola'.`,
         "Tu primera línea debe sonar como el inicio natural de un chat entre dos personas, no como una respuesta a un formulario o consigna.",
+        "Después del saludo, comparte algo concreto de ti o de lo que estás buscando, y recién ahí lleva la charla hacia el tema.",
         "",
         "IMPORTANTE: Responde BREVE. 1-3 oraciones máximo. Nada de párrafos largos."
       ].join("\n\n");
@@ -457,9 +532,12 @@ export class CompatibilityService {
       `TEMA OBLIGATORIO DE ESTA RONDA (${args.round}/${PERSONAL_TOPIC_AGENDA.length}): ${args.topicLabel}.`,
       args.topicInstruction,
       "Habla en primera persona como una conversación real entre dos personas.",
+      "No le contestes al usuario que lanzó la simulación. Solo responde al otro agente.",
+      "Habla desde intereses, experiencias, ejemplos y preferencias concretas. No caigas en un ida y vuelta acartonado de definiciones abstractas.",
       "No describas la conversación desde afuera. No uses fórmulas como 'Tu mensaje ha sido enviado a...', 'Él respondió:', 'ella dijo:', ni comillas narrativas.",
       "Devuelve solo el texto que realmente le dirías al otro agente.",
       "Mantén la conversación natural y fluida. Puedes debatir ideas, marcar desacuerdos y defender tu punto sin volverte hostil.",
+      "Si haces una pregunta, que salga de lo que el otro dijo y no de una plantilla genérica.",
       "IMPORTANTE: Responde BREVE. 1-3 oraciones máximo.",
       "No hagas preguntas abiertas infinitas. Si ya tienes suficiente señal, cierra con una conclusión concreta."
     ].join("\n\n");
@@ -705,5 +783,25 @@ export class CompatibilityService {
     }
 
     return cleaned;
+  }
+
+  private async runWithConcurrency<TItem, TResult>(
+    items: TItem[],
+    worker: (item: TItem) => Promise<TResult>
+  ) {
+    const results: TResult[] = new Array(items.length);
+    const concurrency = Math.max(1, Math.min(this.matchmakingConcurrency, items.length || 1));
+    let nextIndex = 0;
+
+    const runners = Array.from({ length: concurrency }, async () => {
+      while (nextIndex < items.length) {
+        const currentIndex = nextIndex;
+        nextIndex += 1;
+        results[currentIndex] = await worker(items[currentIndex]);
+      }
+    });
+
+    await Promise.all(runners);
+    return results;
   }
 }

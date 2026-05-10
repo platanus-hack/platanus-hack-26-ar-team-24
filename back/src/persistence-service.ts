@@ -22,6 +22,7 @@ type AgentIdentityRow = {
   agent_id: string;
   agent_name: string;
   agent_role: string | null;
+  source_profile?: UserProfile | null;
 };
 
 type DashboardSignal = {
@@ -67,6 +68,17 @@ export type DashboardAnalytics = {
     reasons: string[];
     createdAt: string;
     transcriptCount: number;
+  }>;
+  topConnections: Array<{
+    counterpartId: string;
+    counterpartLabel: string;
+    counterpartRole: string | null;
+    averageScore: number;
+    matchRate: number;
+    conversations: number;
+    matches: number;
+    lastConversationAt: string;
+    strongestSummary: string;
   }>;
   sharedInterestSignals: DashboardSignal[];
   incompatibilitySignals: DashboardSignal[];
@@ -207,6 +219,31 @@ export class PersistenceService {
     return data;
   }
 
+  async getAgentIdentityMap(
+    ownerUserId: string,
+    ownerAccessToken: string,
+    agentIds: string[]
+  ) {
+    if (agentIds.length === 0) {
+      return new Map<string, AgentIdentityRow>();
+    }
+
+    const client = createSupabaseUserClient(ownerAccessToken);
+    const { data, error } = await client
+      .from("agent_identities")
+      .select("agent_id, agent_name, agent_role, source_profile")
+      .eq("user_id", ownerUserId)
+      .in("agent_id", agentIds);
+
+    if (error) {
+      throw new Error(`Failed to fetch agent identities: ${error.message}`);
+    }
+
+    return new Map(
+      ((data ?? []) as AgentIdentityRow[]).map((identity) => [identity.agent_id, identity] as const)
+    );
+  }
+
   async getDashboardAnalytics(
     ownerUserId: string,
     ownerAccessToken: string,
@@ -330,6 +367,7 @@ export class PersistenceService {
         transcriptCount: conversation.transcript?.length ?? 0
       };
     });
+    const topConnections = this.buildTopConnections(conversations, identityMap, focusedAgentId);
 
     const insights = this.buildInsights({
       totalSimulations,
@@ -361,6 +399,7 @@ export class PersistenceService {
       trend,
       scoreBands,
       recentConversations,
+      topConnections,
       sharedInterestSignals,
       incompatibilitySignals,
       insights
@@ -446,6 +485,86 @@ export class PersistenceService {
               : `El match rate reciente cayó ${this.formatSignedPercent(delta)} mientras el promedio de mensajes quedó en ${Math.round(args.averageMessages)}. Hay más charla, pero no mejor señal.`
       }
     ];
+  }
+
+  private buildTopConnections(
+    conversations: StoredConversationRow[],
+    identityMap: Map<string, AgentIdentityRow>,
+    focusedAgentId: string | null
+  ) {
+    const groups = new Map<
+      string,
+      {
+        counterpartId: string;
+        scores: number[];
+        matches: number;
+        total: number;
+        lastConversationAt: string;
+        strongestSummary: string;
+        strongestScore: number;
+      }
+    >();
+
+    for (const conversation of conversations) {
+      const counterpartId = this.getCounterpartId(conversation, focusedAgentId);
+      const score = conversation.compatibility?.score ?? 0;
+      const current = groups.get(counterpartId) ?? {
+        counterpartId,
+        scores: [],
+        matches: 0,
+        total: 0,
+        lastConversationAt: conversation.created_at,
+        strongestSummary: conversation.compatibility?.summary ?? "",
+        strongestScore: score
+      };
+
+      current.scores.push(score);
+      current.total += 1;
+      current.matches += conversation.status === "match" ? 1 : 0;
+
+      if (new Date(conversation.created_at) > new Date(current.lastConversationAt)) {
+        current.lastConversationAt = conversation.created_at;
+      }
+
+      if (score >= current.strongestScore) {
+        current.strongestScore = score;
+        current.strongestSummary = conversation.compatibility?.summary ?? current.strongestSummary;
+      }
+
+      groups.set(counterpartId, current);
+    }
+
+    return [...groups.values()]
+      .map((group) => {
+        const counterpartIdentity = identityMap.get(group.counterpartId);
+        const averageScore = group.total
+          ? group.scores.reduce((sum, score) => sum + score, 0) / group.total
+          : 0;
+
+        return {
+          counterpartId: group.counterpartId,
+          counterpartLabel: counterpartIdentity?.agent_name ?? this.formatAgentId(group.counterpartId),
+          counterpartRole: counterpartIdentity?.agent_role ?? null,
+          averageScore: Number(averageScore.toFixed(3)),
+          matchRate: group.total ? Number((group.matches / group.total).toFixed(3)) : 0,
+          conversations: group.total,
+          matches: group.matches,
+          lastConversationAt: group.lastConversationAt,
+          strongestSummary: group.strongestSummary
+        };
+      })
+      .sort((left, right) => {
+        if (right.averageScore !== left.averageScore) {
+          return right.averageScore - left.averageScore;
+        }
+
+        if (right.matches !== left.matches) {
+          return right.matches - left.matches;
+        }
+
+        return right.conversations - left.conversations;
+      })
+      .slice(0, 10);
   }
 
   private countSignals(values: string[], limit: number): DashboardSignal[] {
