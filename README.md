@@ -1,4 +1,4 @@
-# Know A Human - Conecta con las personas correctas en la era de la IA
+# Know A Human - Connect with the right people in the AI era
 
 **Platanus Hack 26 | Team 24 | Buenos Aires | Track: Future**
 
@@ -16,151 +16,151 @@
 
 ---
 
-## El futuro no es solo saber crear, es saber con quien construir
+## The future is not only about knowing how to create, it is about knowing who to build with
 
-Know A Human es una plataforma que conecta personas desde lo humano.
+Know A Human is a platform that connects people through what makes them human.
 
-En un mundo donde la inteligencia artificial permite que cada vez mas personas puedan programar, disenar, crear y lanzar productos digitales, las habilidades tecnicas ya no son el unico diferencial.
+In a world where artificial intelligence allows more and more people to program, design, create, and launch digital products, technical skills are no longer the only differentiator.
 
-Hoy el verdadero valor empieza a estar en encontrar personas compatibles: personas con valores, personalidad, creatividad, formas de pensar y objetivos alineados.
+Today, real value is starting to come from finding compatible people: people with aligned values, personalities, creativity, ways of thinking, and goals.
 
-**Nuestro objetivo:** transformar el networking tradicional en conexiones humanas reales, ayudando a encontrar candidatos, socios, equipos y comunidades compatibles.
+**Our goal:** transform traditional networking into real human connections, helping people find compatible candidates, partners, teams, and communities.
 
-**Proba nuestra plataforma en vivo aca:**  
+**Try our live platform here:**  
 https://knewa-human.vercel.app/landing
 
 ---
 
-## Por que necesitas votar por nosotros
+## Why you need to vote for us
 
-### Un problema real, una nueva forma de conectar
+### A real problem, a new way to connect
 
-La inteligencia artificial esta democratizando las habilidades tecnicas. Cada vez mas personas pueden crear productos, escribir codigo, disenar interfaces o automatizar tareas.
+Artificial intelligence is democratizing technical skills. More and more people can create products, write code, design interfaces, or automate tasks.
 
-Pero eso abre una nueva pregunta:
+But that opens up a new question:
 
-**Si todos pueden construir con IA, que nos diferencia realmente?**
+**If everyone can build with AI, what really makes us different?**
 
-Know A Human responde a ese problema poniendo el foco en lo que la IA no puede copiar facilmente: la forma en que una persona piensa, crea, colabora y se relaciona.
-
----
-
-### Networking real, no conexiones vacias
-
-Hoy existen muchas plataformas para mostrar experiencia, estudios o habilidades tecnicas. Pero muy pocas ayudan a entender si dos personas realmente son compatibles para trabajar juntas, crear algo o formar un equipo.
-
-Know A Human busca resolver eso conectando personas segun:
-
-- Personalidad
-- Valores
-- Creatividad
-- Compatibilidad
-- Habilidades blandas
-- Objetivos
-- Forma de colaborar
-- Forma de pensar
+Know A Human answers that problem by focusing on what AI cannot easily copy: the way a person thinks, creates, collaborates, and relates to others.
 
 ---
 
-### Hecho para personas que quieren construir algo real
+### Real networking, not empty connections
 
-Nuestro enfoque esta pensado para emprendedores, desarrolladores, disenadores, recruiters, startups, equipos de hackaton y comunidades que necesitan encontrar personas compatibles para crear proyectos.
+Today, there are many platforms for showcasing experience, education, or technical skills. But very few help people understand whether two people are truly compatible to work together, create something, or form a team.
 
-No se trata solo de encontrar a alguien que sepa hacer algo.
+Know A Human aims to solve that by connecting people based on:
 
-Se trata de encontrar a la persona correcta para construirlo con vos.
+- Personality
+- Values
+- Creativity
+- Compatibility
+- Soft skills
+- Goals
+- Collaboration style
+- Way of thinking
 
 ---
 
-## Caracteristicas destacadas de Know A Human
+### Built for people who want to create something real
 
-| Funcionalidad | Por que importa |
+Our approach is designed for entrepreneurs, developers, designers, recruiters, startups, hackathon teams, and communities that need to find compatible people to create projects.
+
+It is not just about finding someone who knows how to do something.
+
+It is about finding the right person to build it with you.
+
+---
+
+## Key features of Know A Human
+
+| Feature | Why it matters |
 |---|---|
-| Perfil humano de cada persona | Permite conocer mas alla de las habilidades tecnicas tradicionales. |
-| Compatibilidad entre usuarios | Ayuda a encontrar personas alineadas en valores, objetivos y formas de trabajo. |
-| Enfoque en habilidades blandas | Destaca aspectos como comunicacion, creatividad, colaboracion y personalidad. |
-| Ideal para formar equipos | Sirve para hackatones, startups, proyectos, comunidades y networking profesional. |
-| Conexiones mas autenticas | Busca reemplazar el networking superficial por vinculos con mas sentido. |
-| Pensado para la era de la IA | En un futuro donde todos pueden crear con IA, encontrar a las personas correctas sera clave. |
+| Human profile for each person | Helps people understand others beyond traditional technical skills. |
+| User compatibility | Helps find people aligned in values, goals, and ways of working. |
+| Focus on soft skills | Highlights aspects such as communication, creativity, collaboration, and personality. |
+| Ideal for building teams | Useful for hackathons, startups, projects, communities, and professional networking. |
+| More authentic connections | Aims to replace superficial networking with more meaningful relationships. |
+| Designed for the AI era | In a future where everyone can create with AI, finding the right people will be key. |
 
 ---
 
-## Queremos tu apoyo
+## We want your support
 
-Estamos participando en esta hackathon para mostrar como la inteligencia artificial no solo puede ayudarnos a crear mas rapido, sino tambien a conectar mejor.
+We are participating in this hackathon to show how artificial intelligence can not only help us create faster, but also connect better.
 
-Creemos que el futuro no va a depender unicamente de quien sabe programar, disenar o construir.
+We believe the future will not depend only on who knows how to program, design, or build.
 
-El futuro va a depender de quien logra rodearse de las personas correctas.
+The future will depend on who manages to surround themselves with the right people.
 
-**Vota por Know A Human y ayudanos a transformar el networking en compatibilidad humana.**
+**Vote for Know A Human and help us transform networking into human compatibility.**
 
-**Votanos aca:**  
+**Vote for us here:**  
 https://hack.platan.us/26-ar/live?fbclid=PAdGRleARtsSBleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAafXJTK4Q29uNLaJ3q74ys5MqLWX2kXvhJtTUaOcEuE8gD8bvR2SlW3M4DTlJw_aem_oH-RHqisRHi6WK2lH43h_Q
 
 ---
 
-## Como Know A Human hace la diferencia
+## How Know A Human makes a difference
 
-### Hoy
+### Today
 
-- La inteligencia artificial hace que las habilidades tecnicas sean cada vez mas accesibles.
-- Crear productos digitales ya no depende solamente de saber programar.
-- Muchas conexiones profesionales siguen siendo superficiales.
-- Formar equipos compatibles sigue siendo dificil.
-- El networking tradicional muchas veces se basa en contactos, no en compatibilidad real.
+- Artificial intelligence is making technical skills increasingly accessible.
+- Creating digital products no longer depends only on knowing how to code.
+- Many professional connections remain superficial.
+- Building compatible teams is still difficult.
+- Traditional networking is often based on contacts, not real compatibility.
 
-### Con Know A Human
+### With Know A Human
 
-- Ayudamos a encontrar personas compatibles para construir proyectos.
-- Ponemos en valor las habilidades humanas que la IA no puede copiar facilmente.
-- Facilitamos la formacion de equipos, comunidades y sociedades.
-- Transformamos el networking en conexiones mas reales y utiles.
-- Priorizamos personalidad, valores, creatividad y colaboracion.
-
----
-
-## Nueva vision
-
-En un futuro donde la inteligencia artificial potencia a todos, el verdadero diferencial sera encontrar a las personas correctas.
-
-Know A Human nace con esa vision: ayudar a que las personas no solo se conecten por lo que saben hacer, sino por como piensan, como crean, como colaboran y como se relacionan.
+- We help people find compatible people to build projects.
+- We value the human skills that AI cannot easily copy.
+- We make it easier to form teams, communities, and partnerships.
+- We transform networking into more real and useful connections.
+- We prioritize personality, values, creativity, and collaboration.
 
 ---
 
-## Frase principal
+## New vision
 
-> **Know A Human conecta personas por lo que la inteligencia artificial no puede copiar facilmente:**  
-> **su forma de pensar, crear, colaborar y relacionarse.**
+In a future where artificial intelligence empowers everyone, the real differentiator will be finding the right people.
+
+Know A Human was born with that vision: helping people connect not only through what they know how to do, but through how they think, how they create, how they collaborate, and how they relate to others.
 
 ---
 
-## Publico objetivo
+## Main phrase
 
-Know A Human esta pensado para:
+> **Know A Human connects people through what artificial intelligence cannot easily copy:**  
+> **their way of thinking, creating, collaborating, and relating to others.**
 
-- Emprendedores
-- Desarrolladores
-- Disenadores
+---
+
+## Target audience
+
+Know A Human is designed for:
+
+- Entrepreneurs
+- Developers
+- Designers
 - Startups
 - Recruiters
-- Equipos de hackaton
-- Comunidades tecnologicas
-- Personas que buscan socios
-- Personas que quieren hacer networking real
-- Personas que quieren construir proyectos con otros
+- Hackathon teams
+- Tech communities
+- People looking for partners
+- People who want real networking
+- People who want to build projects with others
 
 ---
 
-# Parte tecnica
+# Technical Section
 
 ## Project Overview
 
-Know A Human es una plataforma de matching inteligente entre talentos, profesionales, founders y startups.
+Know A Human is an intelligent matching platform for talent, professionals, founders, and startups.
 
-El sistema permite crear perfiles de candidatos y startups, analizar compatibilidad y generar conexiones basadas en habilidades, experiencia, tecnologias y compatibilidad humana.
+The system allows users to create candidate and startup profiles, analyze compatibility, and generate connections based on skills, experience, technologies, and human compatibility.
 
-**Status:** MVP desarrollado para Platanus Hack 26.
+**Status:** MVP developed for Platanus Hack 26.
 
 ---
 
@@ -168,7 +168,7 @@ El sistema permite crear perfiles de candidatos y startups, analizar compatibili
 
 ```txt
 knowAhuman/
-├── services/api/                    # Backend Express + TypeScript
+├── services/api/                    # Express + TypeScript backend
 │   ├── src/
 │   │   ├── controllers/             # Request handlers
 │   │   ├── services/                # Business logic
@@ -180,14 +180,14 @@ knowAhuman/
 │   ├── FRONTEND_API_GUIDE.md
 │   └── package.json
 │
-├── apps/web/                        # Frontend Next.js
+├── apps/web/                        # Next.js frontend
 │   ├── app/
 │   ├── components/
 │   ├── lib/
 │   └── package.json
 │
 ├── openclaw/                        # OpenClaw runtime
-└── back/                            # Backend minimo para runtime
+└── back/                            # Minimal backend for runtime
 ```
 
 ---
@@ -197,22 +197,21 @@ knowAhuman/
 - **Frontend:** Next.js
 - **Backend:** Express + TypeScript
 - **Database:** Supabase
-- **Runtime IA:** OpenClaw
+- **AI Runtime:** OpenClaw
 - **Deploy:** Vercel / Railway
 
 ---
 
-## Seguridad
+## Security
 
-Este repositorio no debe incluir claves reales, tokens privados ni archivos `.env` con credenciales.
+This repository must not include real keys, private tokens, or `.env` files with credentials.
 
-Para configurar el entorno local, usar los archivos de ejemplo y completar los valores reales solo en archivos locales ignorados por git.
+To configure the local environment, use the example files and fill in the real values only in local files ignored by git.
 
-Archivos de referencia:
+Reference files:
 
 - `.env.example`
 - `.env.backend.template`
 - `.env.frontend.template`
 - `services/api/.env.example`
 - `openclaw.runtime.env.example`
-
