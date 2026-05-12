@@ -1,20 +1,12 @@
-# KnowAHuman - AI-Mediated Talent-Startup Matching Platform
+# Know A Human - Conecta con las personas correctas en la era de la IA
 
-**Platanus Hack 26 | Team 24 | Buenos Aires | Track: 🛸 Future**
+**Platanus Hack 26 | Team 24 | Buenos Aires | Track: Future**
 
 <img src="./project-logo.png" alt="knowAhuman Logo" width="200" />
 
 ---
 
-## 📋 Project Overview
-
-KnowAHuman is an intelligent platform that bridges the gap between talented developers/professionals and innovative startups. Using AI-mediated matching, we connect job seekers with founder teams based on skill compatibility, experience levels, and technical alignment.
-
-**Status:** MVP Backend ✅ Complete | Frontend 🔨 In Progress
-
----
-
-## 👥 Team
+## Team
 
 - **Marcos Penon** ([@mpenon4](https://github.com/mpenon4))
 - **Roman Pedro Meclazcke** ([@romanmeclazcke](https://github.com/romanmeclazcke))
@@ -22,351 +14,205 @@ KnowAHuman is an intelligent platform that bridges the gap between talented deve
 - **Alejandro Cafaro** ([@AleCafaro](https://github.com/AleCafaro))
 - **Luca Saboredo** ([@Lucasaboredo](https://github.com/Lucasaboredo))
 
-Have fun! 🚀
+---
 
-## OpenClaw runtime
+## El futuro no es solo saber crear, es saber con quien construir
 
-El repo ahora incluye:
+Know A Human es una plataforma que conecta personas desde lo humano.
 
-- `openclaw/`: runtime desplegable con OpenClaw + API admin + proxy al gateway
-- `back/`: backend mínimo para consumir el runtime
+En un mundo donde la inteligencia artificial permite que cada vez mas personas puedan programar, disenar, crear y lanzar productos digitales, las habilidades tecnicas ya no son el unico diferencial.
 
-Flujo esperado:
+Hoy el verdadero valor empieza a estar en encontrar personas compatibles: personas con valores, personalidad, creatividad, formas de pensar y objetivos alineados.
 
-`frontend local -> back local -> openclaw runtime`
+**Nuestro objetivo:** transformar el networking tradicional en conexiones humanas reales, ayudando a encontrar candidatos, socios, equipos y comunidades compatibles.
 
-Levantado local:
-
-```bash
-cp .env.example .env
-docker compose up --build
-```
-
-Servicios:
-
-- runtime OpenClaw: `http://localhost:8080`
-- backend: `http://localhost:4000`
+**Proba nuestra plataforma en vivo aca:**  
+https://knewa-human.vercel.app/landing
 
 ---
 
-## 🚀 Quick Start
+## Por que necesitas votar por nosotros
 
-### Prerequisites
-- Node.js 20+
-- npm/yarn
-- Git
+### Un problema real, una nueva forma de conectar
 
-### Backend Setup (✅ Completed)
+La inteligencia artificial esta democratizando las habilidades tecnicas. Cada vez mas personas pueden crear productos, escribir codigo, disenar interfaces o automatizar tareas.
 
-```bash
-cd services/api
-npm install
-npm run dev
-# Runs on http://localhost:3000
-```
+Pero eso abre una nueva pregunta:
 
-### Frontend Setup (🔨 In Progress)
+**Si todos pueden construir con IA, que nos diferencia realmente?**
 
-```bash
-cd apps/web
-npm install
-npm run dev
-# Runs on http://localhost:3001
-```
+Know A Human responde a ese problema poniendo el foco en lo que la IA no puede copiar facilmente: la forma en que una persona piensa, crea, colabora y se relaciona.
 
 ---
 
-## 📚 Documentation
+### Networking real, no conexiones vacias
 
-| Document | Purpose |
-|----------|---------|
-| **`CLAUDE.md`** | 🤖 Instructions for AI sessions |
-| **`STATUS.md`** | 📊 Detailed project progress |
-| **`services/api/FRONTEND_API_GUIDE.md`** | 🔗 Complete API documentation (START HERE) |
-| **`services/api/README.md`** | ⚙️ Backend setup guide |
-| **`services/api/database.sql`** | 🗄️ Database schema |
+Hoy existen muchas plataformas para mostrar experiencia, estudios o habilidades tecnicas. Pero muy pocas ayudan a entender si dos personas realmente son compatibles para trabajar juntas, crear algo o formar un equipo.
 
----
+Know A Human busca resolver eso conectando personas segun:
 
-## 🎯 MVP Features
-
-### Backend ✅
-- User authentication (talent + founder roles)
-- Candidate profile creation (skills, experience, tech stack)
-- Startup profile creation (company info, tech stack, culture)
-- Matching algorithm (skill overlap + experience + tech diversity)
-- 19 REST API endpoints
-- Supabase PostgreSQL database with RLS policies
-
-### Frontend 🔨
-- User registration & authentication UI
-- Profile creation forms
-- Matching results display
-- Accept/reject matches
-- User dashboards
+- Personalidad
+- Valores
+- Creatividad
+- Compatibilidad
+- Habilidades blandas
+- Objetivos
+- Forma de colaborar
+- Forma de pensar
 
 ---
 
-## 🏗️ Architecture
+### Hecho para personas que quieren construir algo real
 
-```
+Nuestro enfoque esta pensado para emprendedores, desarrolladores, disenadores, recruiters, startups, equipos de hackaton y comunidades que necesitan encontrar personas compatibles para crear proyectos.
+
+No se trata solo de encontrar a alguien que sepa hacer algo.
+
+Se trata de encontrar a la persona correcta para construirlo con vos.
+
+---
+
+## Caracteristicas destacadas de Know A Human
+
+| Funcionalidad | Por que importa |
+|---|---|
+| Perfil humano de cada persona | Permite conocer mas alla de las habilidades tecnicas tradicionales. |
+| Compatibilidad entre usuarios | Ayuda a encontrar personas alineadas en valores, objetivos y formas de trabajo. |
+| Enfoque en habilidades blandas | Destaca aspectos como comunicacion, creatividad, colaboracion y personalidad. |
+| Ideal para formar equipos | Sirve para hackatones, startups, proyectos, comunidades y networking profesional. |
+| Conexiones mas autenticas | Busca reemplazar el networking superficial por vinculos con mas sentido. |
+| Pensado para la era de la IA | En un futuro donde todos pueden crear con IA, encontrar a las personas correctas sera clave. |
+
+---
+
+## Queremos tu apoyo
+
+Estamos participando en esta hackathon para mostrar como la inteligencia artificial no solo puede ayudarnos a crear mas rapido, sino tambien a conectar mejor.
+
+Creemos que el futuro no va a depender unicamente de quien sabe programar, disenar o construir.
+
+El futuro va a depender de quien logra rodearse de las personas correctas.
+
+**Vota por Know A Human y ayudanos a transformar el networking en compatibilidad humana.**
+
+**Votanos aca:**  
+https://hack.platan.us/26-ar/live?fbclid=PAdGRleARtsSBleHRuA2FlbQIxMQBzcnRjBmFwcF9pZA8xMjQwMjQ1NzQyODc0MTQAAafXJTK4Q29uNLaJ3q74ys5MqLWX2kXvhJtTUaOcEuE8gD8bvR2SlW3M4DTlJw_aem_oH-RHqisRHi6WK2lH43h_Q
+
+---
+
+## Como Know A Human hace la diferencia
+
+### Hoy
+
+- La inteligencia artificial hace que las habilidades tecnicas sean cada vez mas accesibles.
+- Crear productos digitales ya no depende solamente de saber programar.
+- Muchas conexiones profesionales siguen siendo superficiales.
+- Formar equipos compatibles sigue siendo dificil.
+- El networking tradicional muchas veces se basa en contactos, no en compatibilidad real.
+
+### Con Know A Human
+
+- Ayudamos a encontrar personas compatibles para construir proyectos.
+- Ponemos en valor las habilidades humanas que la IA no puede copiar facilmente.
+- Facilitamos la formacion de equipos, comunidades y sociedades.
+- Transformamos el networking en conexiones mas reales y utiles.
+- Priorizamos personalidad, valores, creatividad y colaboracion.
+
+---
+
+## Nueva vision
+
+En un futuro donde la inteligencia artificial potencia a todos, el verdadero diferencial sera encontrar a las personas correctas.
+
+Know A Human nace con esa vision: ayudar a que las personas no solo se conecten por lo que saben hacer, sino por como piensan, como crean, como colaboran y como se relacionan.
+
+---
+
+## Frase principal
+
+> **Know A Human conecta personas por lo que la inteligencia artificial no puede copiar facilmente:**  
+> **su forma de pensar, crear, colaborar y relacionarse.**
+
+---
+
+## Publico objetivo
+
+Know A Human esta pensado para:
+
+- Emprendedores
+- Desarrolladores
+- Disenadores
+- Startups
+- Recruiters
+- Equipos de hackaton
+- Comunidades tecnologicas
+- Personas que buscan socios
+- Personas que quieren hacer networking real
+- Personas que quieren construir proyectos con otros
+
+---
+
+# Parte tecnica
+
+## Project Overview
+
+Know A Human es una plataforma de matching inteligente entre talentos, profesionales, founders y startups.
+
+El sistema permite crear perfiles de candidatos y startups, analizar compatibilidad y generar conexiones basadas en habilidades, experiencia, tecnologias y compatibilidad humana.
+
+**Status:** MVP desarrollado para Platanus Hack 26.
+
+---
+
+## Architecture
+
+```txt
 knowAhuman/
-├── services/api/                          # Express + TypeScript Backend ✅
+├── services/api/                    # Backend Express + TypeScript
 │   ├── src/
-│   │   ├── controllers/                  # Request handlers
-│   │   ├── services/                     # Business logic
-│   │   ├── routes/                       # API endpoints
-│   │   ├── middlewares/                  # Auth, validation, errors
-│   │   ├── config/                       # Supabase, environment
-│   │   ├── types/                        # TypeScript interfaces
-│   │   └── utils/                        # JWT, bcrypt, validators
-│   ├── FRONTEND_API_GUIDE.md             # ⭐ API Documentation
+│   │   ├── controllers/             # Request handlers
+│   │   ├── services/                # Business logic
+│   │   ├── routes/                  # API endpoints
+│   │   ├── middlewares/             # Auth, validation, errors
+│   │   ├── config/                  # Supabase, environment
+│   │   ├── types/                   # TypeScript interfaces
+│   │   └── utils/                   # JWT, bcrypt, validators
+│   ├── FRONTEND_API_GUIDE.md
 │   └── package.json
-└── apps/web/                              # Next.js Frontend 🔨
-    ├── app/
-    ├── components/
-    ├── lib/
-    └── package.json
+│
+├── apps/web/                        # Frontend Next.js
+│   ├── app/
+│   ├── components/
+│   ├── lib/
+│   └── package.json
+│
+├── openclaw/                        # OpenClaw runtime
+└── back/                            # Backend minimo para runtime
 ```
 
 ---
 
-## 🔗 API Endpoints (19 Total)
+## Stack
 
-### Authentication
-```
-POST /auth/register          # User registration
-POST /auth/login             # User login
-```
-
-### User Profiles
-```
-POST   /profile/candidate    # Create talent profile
-GET    /profile/candidate    # Get talent profile
-PUT    /profile/candidate    # Update talent profile
-
-POST   /profile/startup      # Create startup profile
-GET    /profile/startup      # Get startup profile
-PUT    /profile/startup      # Update startup profile
-```
-
-### Matching
-```
-POST   /match/run            # Run matching algorithm
-GET    /match/results        # Get match results
-PUT    /match/status         # Accept/reject match
-```
-
-### Analysis (Mock)
-```
-POST   /profile/github/analyze      # GitHub profile analysis
-POST   /profile/linkedin/analyze    # LinkedIn profile analysis
-```
-
-### AI Services (Mock)
-```
-POST   /ai/candidate-agent         # Generate candidate agent
-POST   /ai/recruiter-agent         # Generate recruiter agent
-POST   /ai/compatibility-score     # Calculate compatibility
-POST   /ai/generate-summary        # Generate match summary
-```
-
-### Browse
-```
-GET    /user/candidates     # List all talent users
-GET    /user/founders       # List all founder users
-GET    /health              # API health check
-```
-
-**⭐ See `services/api/FRONTEND_API_GUIDE.md` for complete endpoint documentation with request/response examples.**
+- **Frontend:** Next.js
+- **Backend:** Express + TypeScript
+- **Database:** Supabase
+- **Runtime IA:** OpenClaw
+- **Deploy:** Vercel / Railway
 
 ---
 
-## 🔐 Authentication
+## Seguridad
 
-- **Type:** JWT (JSON Web Tokens)
-- **Expiration:** 7 days
-- **Hashing:** bcrypt
-- **Header:** `Authorization: Bearer <token>`
+Este repositorio no debe incluir claves reales, tokens privados ni archivos `.env` con credenciales.
 
----
+Para configurar el entorno local, usar los archivos de ejemplo y completar los valores reales solo en archivos locales ignorados por git.
 
-## 🗄️ Database
+Archivos de referencia:
 
-- **Type:** PostgreSQL (Supabase)
-- **Tables:** 8 (users, candidate_profiles, startup_profiles, opportunities, matches, ai_agents, github_profiles, linkedin_profiles)
-- **Security:** Row-Level Security (RLS) policies
-- **Status:** ✅ Schema created and tested
+- `.env.example`
+- `.env.backend.template`
+- `.env.frontend.template`
+- `services/api/.env.example`
+- `openclaw.runtime.env.example`
 
----
-
-## 🎲 Matching Algorithm
-
-```
-Match Score = (Skill Overlap × 0.60) + (Experience Match × 0.20) + (Tech Match × 0.20)
-Result Range: 0.00 to 1.00 (0% to 100%)
-```
-
-**Factors:**
-- **Skills (60%):** Common skills between candidate and startup
-- **Experience (20%):** Years of experience (0-1 scale)
-- **Technology (20%):** Tech stack overlap
-
----
-
-## 🔄 MVP Flow
-
-### For Talent Users
-1. Register with `user_type: "talent"`
-2. Create candidate profile (bio, skills, experience, technologies, GitHub, LinkedIn)
-3. Wait for founder to run matching
-4. View match results (score, summary, reasons)
-5. Accept or reject matches
-
-### For Founder Users
-1. Register with `user_type: "founder"`
-2. Create startup profile (name, description, tech stack, culture values)
-3. Run matching against all candidates
-4. See match results sorted by score
-5. Accept or reject candidates
-
----
-
-## 🛠️ Tech Stack
-
-### Backend
-- **Framework:** Express.js
-- **Language:** TypeScript
-- **Database:** Supabase PostgreSQL
-- **Auth:** JWT + bcrypt
-- **Validation:** Zod
-- **Security:** Helmet, CORS
-
-### Frontend (Recommended)
-- **Framework:** Next.js 14+
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS / Shadcn UI
-- **HTTP:** Fetch API / Axios
-- **State:** React Context / Zustand
-- **Forms:** React Hook Form + Zod
-
----
-
-## 📖 For Frontend Developers
-
-**Start here:** Read `services/api/FRONTEND_API_GUIDE.md`
-
-This document contains:
-- Base URL
-- All endpoints with request/response examples
-- Required headers and authentication
-- Validation rules
-- Error codes
-- Complete MVP flow code example
-
----
-
-## 🚀 Deployment
-
-### Backend
-- **Local:** `npm run dev` on port 3000
-- **Production:** Ready for Railway, Render, or similar Node.js hosting
-
-### Frontend
-- **Local:** `npm run dev` on port 3001
-- **Production:** Ready for Vercel
-
----
-
-## 📝 Environment Variables
-
-See `services/api/.env.example` for required variables.
-
-Key variables:
-```
-SUPABASE_URL=<your-supabase-url>
-SUPABASE_ANON_KEY=<anon-key>
-SUPABASE_SERVICE_KEY=<service-key>
-JWT_SECRET=<your-secret>
-```
-
----
-
-## 🎯 Project Phases
-
-### Phase 1: MVP (Current ✅)
-- [x] Backend REST API
-- [x] User authentication
-- [x] Profile management
-- [x] Matching algorithm
-- [ ] Frontend UI
-
-### Phase 2: Real Integrations (Next)
-- [ ] Real GitHub API integration
-- [ ] LinkedIn profile scraping
-- [ ] Real AI (OpenAI/Anthropic) integration
-- [ ] Advanced matching
-
-### Phase 3: Advanced Features
-- [ ] Real-time chat/messaging
-- [ ] ML-based matching
-- [ ] User recommendations
-- [ ] Advanced analytics
-
-### Phase 4: Production
-- [ ] Load testing
-- [ ] Security audit
-- [ ] Performance optimization
-- [ ] Deployment
-
----
-
-## 🤝 Contributing
-
-1. Create a branch for your feature
-2. Make changes
-3. Test thoroughly
-4. Submit PR with description
-5. Coordinate with team before major changes
-
----
-
-## 📞 Support
-
-- **API Issues:** Check `FRONTEND_API_GUIDE.md`
-- **Backend Issues:** See `services/api/README.md`
-- **Questions:** Refer to `CLAUDE.md` and `STATUS.md`
-
----
-
-## 📄 License
-
-TBD - Platanus Hack 26 Project
-
----
-
-## 🎉 Next Steps
-
-1. ✅ Backend is complete and tested
-2. 🔨 Frontend team: Read `FRONTEND_API_GUIDE.md`
-3. 🔨 Frontend team: Set up Next.js project
-4. 🔨 Frontend team: Start implementing UI
-5. 🚀 Deploy when ready
-
-**Everything is ready for frontend development!**
-
-## Deploy en Railway
-
-Producción se despliega como 2 servicios separados desde este mismo repo:
-
-- `openclaw/`
-- `back/`
-
-No uses `docker-compose.yml` en Railway. Ese compose es solo para desarrollo local.
-
-Guía rápida:
-
-1. Crear un servicio con `Root Directory = openclaw`
-2. Crear otro servicio con `Root Directory = back`
-3. Montar un volumen en `/data` solo en `openclaw`
-4. Configurar `OPENCLAW_RUNTIME_URL` de `back` apuntando a la URL pública de `openclaw`
